@@ -3,9 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
+import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication.dart';
+import 'package:pet_adoption_app/src/domain/entities/auth/password_reset_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
@@ -121,6 +123,31 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       } else {
         return Future.value(Left(EmailVerificationFailure()));
       }
+    } catch (e) {
+      return Future.value(Left(ServerFailure()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> resetPassword(
+    PasswordResetEntity passwordResetData,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return Future.value(Left(NetworkFailure()));
+    }
+
+    try {
+      final passwordResetModel = PasswordResetModel(
+        email: passwordResetData.email,
+      );
+      await firebaseAuthentication.resetPassword(passwordResetModel);
+      return Future.value(const Right(unit));
+    } on UserNotFoundException {
+      return Future.value(Left(UserNotFoundFailure()));
+    } on TooManyRequestsException {
+      return Future.value(Left(TooManyRequestsFailure()));
+    } on ServerException {
+      return Future.value(Left(ServerFailure()));
     } catch (e) {
       return Future.value(Left(ServerFailure()));
     }

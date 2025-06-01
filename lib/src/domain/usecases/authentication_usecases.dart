@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
+import 'package:pet_adoption_app/src/domain/entities/auth/password_reset_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
@@ -42,6 +43,18 @@ class CheckEmailVerificationUseCase {
 
   Future<Either<Failure, Unit>> call() async {
     return await repository.checkEmailVerification();
+  }
+}
+
+class ResetPasswordUseCase {
+  final AuthenticationRepository repository;
+
+  ResetPasswordUseCase(this.repository);
+
+  Future<Either<Failure, Unit>> call(
+    PasswordResetEntity passwordResetData,
+  ) async {
+    return await repository.resetPassword(passwordResetData);
   }
 }
 

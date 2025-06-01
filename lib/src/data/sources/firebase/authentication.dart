@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
+import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
 
@@ -21,6 +22,8 @@ class FirebaseAuthentication {
       if (e.code == 'user-not-found') {
         throw UserNotFoundException();
       } else if (e.code == 'wrong-password') {
+        throw WrongPasswordException();
+      } else if (e.code == 'invalid-credential') {
         throw WrongPasswordException();
       } else {
         throw ServerException();
@@ -69,6 +72,26 @@ class FirebaseAuthentication {
       }
     } else {
       throw UserNotFoundException();
+    }
+
+    return Future.value(unit);
+  }
+
+  Future<Unit> resetPassword(PasswordResetModel passwordResetData) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: passwordResetData.email,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        throw UserNotFoundException();
+      } else if (e.code == 'too-many-requests') {
+        throw TooManyRequestsException();
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException();
     }
 
     return Future.value(unit);
