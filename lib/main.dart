@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/firebase_options.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart' as di;
+import 'package:pet_adoption_app/src/presentation/config/routes/index.dart';
 import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
@@ -34,12 +35,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
-        return MaterialApp(
+        return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           title: 'Pet Adoption App',
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
           themeMode: themeProvider.currentThemeMode,
+          routerConfig: AppRouter.router,
         );
       },
     );
