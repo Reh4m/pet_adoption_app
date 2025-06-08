@@ -4,8 +4,8 @@ import 'package:pet_adoption_app/src/presentation/screens/auth/email_verificatio
 import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_up_screen.dart';
-import 'package:pet_adoption_app/src/presentation/screens/home/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart';
+import 'package:pet_adoption_app/src/presentation/screens/root_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -32,7 +32,7 @@ class AppRouter {
         path: '/email-verification',
         builder: (context, state) => const EmailVerificationScreen(),
       ),
-      GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
+      GoRoute(path: '/home', builder: (context, state) => const RootScreen()),
     ],
   );
 }

@@ -44,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: SafeArea(
@@ -59,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               _buildCategories(theme),
               const SizedBox(height: 20),
-              Expanded(child: _buildPetCarousel(size)),
+              Expanded(child: _buildPetCarousel()),
               const SizedBox(height: 20),
             ],
           ),
@@ -198,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPetCarousel(Size size) {
+  Widget _buildPetCarousel() {
     if (currentPets.isEmpty) {
       return const Center(
         child: Text(
@@ -212,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
       carouselController: carouselController,
       items: currentPets.map((pet) => PetCard(pet: pet)).toList(),
       options: CarouselOptions(
-        height: size.height,
+        height: double.infinity,
         enlargeCenterPage: true,
         onPageChanged: (index, reason) {
           setState(() {
