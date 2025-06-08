@@ -6,14 +6,14 @@ import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
-import 'package:pet_adoption_app/src/data/sources/firebase/authentication.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/password_reset_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 
 class AuthenticationRepositoryImpl implements AuthenticationRepository {
-  final FirebaseAuthentication firebaseAuthentication;
+  final FirebaseAuthenticationService firebaseAuthentication;
   final NetworkInfo networkInfo;
 
   AuthenticationRepositoryImpl({

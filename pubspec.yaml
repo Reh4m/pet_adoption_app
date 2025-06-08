@@ -48,6 +48,13 @@ dependencies:
   blobs: ^2.0.0
   carousel_slider: ^5.1.1
   google_nav_bar: ^5.0.7
+  cloud_firestore: ^5.6.8
+  firebase_storage: ^12.4.6
+  geolocator: ^14.0.1
+  geocoding: ^4.0.0
+  image_picker: ^1.1.2
+  intl: ^0.20.2
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

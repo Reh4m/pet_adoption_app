@@ -6,7 +6,7 @@ import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart'
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
 
-class FirebaseAuthentication {
+class FirebaseAuthenticationService {
   Future<UserCredential> signInWithEmailAndPassword(
     SignInModel signInData,
   ) async {

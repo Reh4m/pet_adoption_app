@@ -51,3 +51,9 @@ class EmailVerificationFailure extends Failure {
   @override
   List<Object?> get props => [];
 }
+
+// Pets Failures
+class PetNotFoundFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}

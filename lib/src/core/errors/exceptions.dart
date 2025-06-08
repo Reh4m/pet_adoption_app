@@ -11,3 +11,6 @@ class WeakPasswordException implements Exception {}
 class ExistingEmailException implements Exception {}
 
 class TooManyRequestsException implements Exception {}
+
+// Pets Exceptions
+class PetNotFoundException implements Exception {}

@@ -6,6 +6,7 @@ import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/presentation/config/routes/index.dart';
 import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/onboarding_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,6 +26,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => OnboardingProvider(prefs)),
         ChangeNotifierProvider(create: (_) => AuthenticationProvider()),
+        ChangeNotifierProvider(create: (_) => PetProvider()),
       ],
       child: const MyApp(),
     ),
