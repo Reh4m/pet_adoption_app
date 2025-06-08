@@ -12,6 +12,8 @@ enum AuthState { initial, loading, success, error }
 class AuthenticationProvider extends ChangeNotifier {
   final SignInUseCase _signInUseCase = sl<SignInUseCase>();
   final SignUpUseCase _signUpUseCase = sl<SignUpUseCase>();
+  final SignInWithGoogleUseCase _signInWithGoogleUseCase =
+      sl<SignInWithGoogleUseCase>();
   final SignOutUseCase _signOutUseCase = sl<SignOutUseCase>();
 
   AuthState _state = AuthState.initial;
@@ -63,6 +65,19 @@ class AuthenticationProvider extends ChangeNotifier {
     });
   }
 
+  Future<void> signInWithGoogle() async {
+    _setState(AuthState.loading);
+
+    final result = await _signInWithGoogleUseCase();
+
+    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (
+      userCredential,
+    ) {
+      _currentUser = userCredential.user;
+      _setState(AuthState.success);
+    });
+  }
+
   Future<void> signOut() async {
     _setState(AuthState.loading);
 
@@ -89,19 +104,19 @@ class AuthenticationProvider extends ChangeNotifier {
 
   String _mapFailureToMessage(Failure failure) {
     switch (failure.runtimeType) {
-      case NetworkFailure _:
+      case const (NetworkFailure):
         return ErrorMessages.networkError;
-      case UserNotFoundFailure _:
+      case const (UserNotFoundFailure):
         return ErrorMessages.userNotFound;
-      case WrongPasswordFailure _:
+      case const (WrongPasswordFailure):
         return ErrorMessages.wrongPassword;
-      case WeakPasswordFailure _:
+      case const (WeakPasswordFailure):
         return ErrorMessages.weakPassword;
-      case ExistingEmailFailure _:
+      case const (ExistingEmailFailure):
         return ErrorMessages.emailInUse;
-      case TooManyRequestsFailure _:
+      case const (TooManyRequestsFailure):
         return ErrorMessages.tooManyRequests;
-      case PasswordMismatchFailure _:
+      case const (PasswordMismatchFailure):
         return ErrorMessages.passwordMismatch;
       default:
         return ErrorMessages.serverError;

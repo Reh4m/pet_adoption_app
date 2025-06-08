@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
 import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
@@ -39,10 +40,14 @@ class FirebaseAuthentication {
 
       await firebaseInstance.currentUser?.reload();
 
-      return await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final result = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: signUpData.email,
         password: signUpData.password,
       );
+
+      result.user?.sendEmailVerification();
+
+      return result;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {
         throw ExistingEmailException();
@@ -51,6 +56,42 @@ class FirebaseAuthentication {
       } else {
         throw ServerException();
       }
+    }
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    final firebaseInstance = FirebaseAuth.instance;
+
+    await firebaseInstance.currentUser?.reload();
+
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    if (googleUser == null) {
+      throw UserNotFoundException();
+    }
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    try {
+      return await firebaseInstance.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'account-exists-with-different-credential') {
+        throw ExistingEmailException();
+      } else if (e.code == 'invalid-credential') {
+        throw ServerException();
+      } else if (e.code == 'operation-not-allowed') {
+        throw ServerException();
+      } else {
+        throw ServerException();
+      }
+    } catch (e) {
+      throw ServerException();
     }
   }
 

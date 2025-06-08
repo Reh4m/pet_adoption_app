@@ -26,6 +26,16 @@ class SignUpUseCase {
   }
 }
 
+class SignInWithGoogleUseCase {
+  final AuthenticationRepository repository;
+
+  SignInWithGoogleUseCase(this.repository);
+
+  Future<Either<Failure, UserCredential>> call() async {
+    return await repository.signInWithGoogle();
+  }
+}
+
 class VerifyEmailUseCase {
   final AuthenticationRepository repository;
 

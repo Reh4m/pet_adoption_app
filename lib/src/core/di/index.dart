@@ -42,6 +42,9 @@ Future<void> init() async {
   sl.registerLazySingleton<SignUpUseCase>(
     () => SignUpUseCase(sl<AuthenticationRepository>()),
   );
+  sl.registerLazySingleton<SignInWithGoogleUseCase>(
+    () => SignInWithGoogleUseCase(sl<AuthenticationRepository>()),
+  );
   sl.registerLazySingleton<VerifyEmailUseCase>(
     () => VerifyEmailUseCase(sl<AuthenticationRepository>()),
   );

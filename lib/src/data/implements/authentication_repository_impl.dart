@@ -83,6 +83,27 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
+  Future<Either<Failure, UserCredential>> signInWithGoogle() async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
+
+    try {
+      final userCredential = await firebaseAuthentication.signInWithGoogle();
+
+      return Right(userCredential);
+    } on UserNotFoundException {
+      return Left(UserNotFoundFailure());
+    } on ExistingEmailException {
+      return Left(ExistingEmailFailure());
+    } on ServerException {
+      return Left(ServerFailure());
+    } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> verifyEmail() async {
     if (!await networkInfo.isConnected) {
       return Future.value(Left(NetworkFailure()));

@@ -12,6 +12,7 @@ abstract class AuthenticationRepository {
   Future<Either<Failure, UserCredential>> signUpWithEmailAndPassword(
     SignUpEntity signUpData,
   );
+  Future<Either<Failure, UserCredential>> signInWithGoogle();
   Future<Either<Failure, Unit>> verifyEmail();
   Future<Either<Failure, Unit>> checkEmailVerification();
   Future<Either<Failure, Unit>> resetPassword(
