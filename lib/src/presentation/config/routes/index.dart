@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/presentation/config/routes/auth_guard.dart';
-import 'package:pet_adoption_app/src/presentation/screens/auth/auth_root_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/email_verification_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_up_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -13,8 +13,8 @@ class AppRouter {
     redirect: authGuard,
     routes: [
       GoRoute(
-        path: '/auth',
-        builder: (context, state) => const AuthRootScreen(),
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: '/login',
