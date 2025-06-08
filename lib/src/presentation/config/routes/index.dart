@@ -4,7 +4,7 @@ import 'package:pet_adoption_app/src/presentation/screens/auth/email_verificatio
 import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_up_screen.dart';
-import 'package:pet_adoption_app/src/presentation/screens/home_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/home/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart';
 
 class AppRouter {
