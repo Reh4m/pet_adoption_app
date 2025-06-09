@@ -11,6 +11,7 @@ import 'package:pet_adoption_app/src/presentation/screens/pets/registration/inde
 import 'package:pet_adoption_app/src/presentation/screens/root_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/edit_profile_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/edit_user_settings_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/user/public/index.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -47,6 +48,13 @@ class AppRouter {
         builder:
             (context, state) =>
                 PetDetailsScreen(petId: state.pathParameters['petId']!),
+      ),
+      GoRoute(
+        path: '/user/:userId',
+        builder:
+            (context, state) => PublicUserProfileScreen(
+              userId: state.pathParameters['userId']!,
+            ),
       ),
       GoRoute(
         path: '/profile/edit',

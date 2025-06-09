@@ -69,20 +69,6 @@ class ActionButtons extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              flex: 2,
-              child: OutlinedButton.icon(
-                onPressed: onContact,
-                icon: const Icon(Icons.message, size: 20),
-                label: const Text('Contactar'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: theme.colorScheme.primary, width: 2),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 3,
               child: ElevatedButton.icon(
                 onPressed: onInterest,
                 icon: const Icon(Icons.favorite, size: 20),

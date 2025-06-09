@@ -286,10 +286,14 @@ class UserProvider extends ChangeNotifier {
 
   void _setUserProfileState(UserState newState) {
     _userProfileState = newState;
+
     if (newState != UserState.error) {
       _userProfileError = null;
     }
-    notifyListeners();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   void _setUserProfileError(String message) {

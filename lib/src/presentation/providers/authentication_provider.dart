@@ -36,12 +36,19 @@ class AuthenticationProvider extends ChangeNotifier {
       SignInEntity(email: email, password: password),
     );
 
-    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (
-      userCredential,
-    ) {
-      _currentUser = userCredential.user;
-      _setState(AuthState.success);
-    });
+    await result.fold(
+      (failure) async => _setError(_mapFailureToMessage(failure)),
+      (userCredential) async {
+        _currentUser = userCredential.user;
+
+        // Crear documento de usuario en Firestore
+        if (_currentUser != null) {
+          await _createOrUpdateUserDocument(_currentUser!);
+        }
+
+        _setState(AuthState.success);
+      },
+    );
   }
 
   Future<void> signUp(
