@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home/index.dart';
+import 'package:pet_adoption_app/src/presentation/screens/user/profile/index.dart';
+import 'package:provider/provider.dart';
 
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
@@ -10,8 +14,31 @@ class RootScreen extends StatefulWidget {
 }
 
 class _RootScreenState extends State<RootScreen> {
-  final _pages = <Widget>[const HomeScreen()];
+  late final List<Widget> _pages;
   int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const HomeScreen(),
+      const PlaceholderScreen(title: 'Favoritos'),
+      const PlaceholderScreen(title: 'Notificaciones'),
+      const CurrentUserProfileScreen(),
+    ];
+
+    // Inicializar UserProvider y sincronizar con Auth
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProvider = context.read<UserProvider>();
+      final authProvider = context.read<AuthenticationProvider>();
+
+      // // Sincronizar usuario actual con Firestore si existe
+      authProvider.syncCurrentUserWithFirestore();
+
+      // Inicializar listener del usuario
+      userProvider.startCurrentUserListener();
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -51,6 +78,51 @@ class _RootScreenState extends State<RootScreen> {
           ],
           selectedIndex: _selectedIndex,
           onTabChange: _onItemTapped,
+        ),
+      ),
+    );
+  }
+}
+
+// Widget temporal para las pantallas no implementadas
+class PlaceholderScreen extends StatelessWidget {
+  final String title;
+
+  const PlaceholderScreen({super.key, required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '$title próximamente',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Esta funcionalidad estará disponible pronto.',
+              style: theme.textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
