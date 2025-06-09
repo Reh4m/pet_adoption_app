@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/constants/theme_constants.dart';
-import 'package:pet_adoption_app/src/core/data/pets.dart';
+import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
 
 class PetCard extends StatelessWidget {
-  final Pet pet;
+  final PetEntity pet;
 
   const PetCard({super.key, required this.pet});
 
@@ -21,7 +21,7 @@ class PetCard extends StatelessWidget {
             height: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: NetworkImage(pet.imageUrl),
+                image: NetworkImage(pet.imageUrls[0]),
                 fit: BoxFit.cover,
               ),
             ),
@@ -38,12 +38,9 @@ class PetCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  pet.isFavorite ? Icons.favorite : Icons.favorite_border,
+                  Icons.favorite_border,
                   size: 20,
-                  color:
-                      pet.isFavorite
-                          ? LightTheme.error
-                          : LightTheme.textSecondary,
+                  color: LightTheme.textSecondary,
                 ),
               ),
             ),
@@ -78,7 +75,7 @@ class PetCard extends StatelessWidget {
                           Icon(Icons.location_on_outlined, size: 20),
                           const SizedBox(width: 5),
                           Text(
-                            pet.location,
+                            pet.location.city,
                             style: theme.textTheme.bodyMedium?.copyWith(),
                           ),
                         ],
@@ -86,9 +83,9 @@ class PetCard extends StatelessWidget {
                     ],
                   ),
                   Icon(
-                    pet.gender == 'Hembra' ? Icons.female : Icons.male,
+                    pet.gender == PetGender.female ? Icons.female : Icons.male,
                     color:
-                        pet.gender == 'Hembra'
+                        pet.gender == PetGender.female
                             ? ThemeConstants.femaleColor
                             : ThemeConstants.maleColor,
                     size: 50,

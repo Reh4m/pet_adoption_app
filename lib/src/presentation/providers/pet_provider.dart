@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart';
@@ -17,109 +18,106 @@ class PetProvider extends ChangeNotifier {
   final UpdatePetUseCase _updatePetUseCase = sl<UpdatePetUseCase>();
   final DeletePetUseCase _deletePetUseCase = sl<DeletePetUseCase>();
   final SearchPetsUseCase _searchPetsUseCase = sl<SearchPetsUseCase>();
-  final GetPetsNearLocationUseCase _getPetsNearLocationUseCase =
-      sl<GetPetsNearLocationUseCase>();
 
   PetState _state = PetState.initial;
   String? _errorMessage;
+
+  List<PetEntity> _allPets = [];
+  Map<String, List<PetEntity>> _petsByCategory = {};
   PetEntity? _selectedPet;
+
+  StreamSubscription? _allPetsSubscription;
+  final Map<String, StreamSubscription> _categorySubscriptions = {};
 
   PetState _createUpdateState = PetState.initial;
   String? _createUpdateError;
 
   PetState get state => _state;
   String? get errorMessage => _errorMessage;
-  PetEntity? get selectedPet => _selectedPet;
   PetState get createUpdateState => _createUpdateState;
   String? get createUpdateError => _createUpdateError;
 
-  Stream<List<PetEntity>?> getAllPets() {
-    return _getAllPetsUseCase().map((either) {
-      return either.fold(
-        (failure) {
-          _setError(_mapFailureToMessage(failure));
-          return null;
-        },
-        (pets) {
-          _clearError();
-          return pets;
-        },
-      );
+  List<PetEntity> get allPets => List.from(_allPets);
+  PetEntity? get selectedPet => _selectedPet;
+
+  List<PetEntity> getPetsByCategory(String category) {
+    return List.from(_petsByCategory[category] ?? []);
+  }
+
+  void _startAllPetsListener() {
+    _setState(PetState.loading);
+
+    _allPetsSubscription = _getAllPetsUseCase().listen((either) {
+      either.fold((failure) => _setError(_mapFailureToMessage(failure)), (
+        pets,
+      ) {
+        _allPets = pets;
+        _setState(PetState.success);
+        _organizePetsByCategory();
+      });
+    }, onError: (error) => _setError('Error de conexión: $error'));
+  }
+
+  void startRealtimeUpdates() {
+    _startAllPetsListener();
+  }
+
+  void stopRealtimeUpdates() {
+    _allPetsSubscription?.cancel();
+    for (final subscription in _categorySubscriptions.values) {
+      subscription.cancel();
+    }
+    _categorySubscriptions.clear();
+  }
+
+  void startCategoryListener(String category) {
+    // Evitar múltiples listeners para la misma categoría
+    if (_categorySubscriptions.containsKey(category)) return;
+
+    _categorySubscriptions[category] = _getPetsByCategoryUseCase(
+      category,
+    ).listen((either) {
+      either.fold((failure) => _setError(_mapFailureToMessage(failure)), (
+        pets,
+      ) {
+        _petsByCategory[category] = pets;
+        notifyListeners();
+      });
     });
   }
 
-  Stream<List<PetEntity>?> getPetsByCategory(String category) {
-    return _getPetsByCategoryUseCase(category).map((either) {
-      return either.fold(
-        (failure) {
-          _setError(_mapFailureToMessage(failure));
-          return null;
-        },
-        (pets) {
-          _clearError();
-          return pets;
-        },
-      );
+  void stopCategoryListener(String category) {
+    _categorySubscriptions[category]?.cancel();
+    _categorySubscriptions.remove(category);
+  }
+
+  void _organizePetsByCategory() {
+    _petsByCategory.clear();
+
+    for (final pet in _allPets) {
+      final category = pet.category;
+      if (!_petsByCategory.containsKey(category)) {
+        _petsByCategory[category] = [];
+      }
+      _petsByCategory[category]!.add(pet);
+    }
+  }
+
+  Future<void> loadPetsOnce() async {
+    _setState(PetState.loading);
+
+    final result = await _getAllPetsUseCase().first;
+
+    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (pets) {
+      _allPets = pets;
+      _organizePetsByCategory();
+      _setState(PetState.success);
     });
   }
 
-  Stream<List<PetEntity>?> searchPets({
-    String? query,
-    List<String>? categories,
-    List<String>? sizes,
-    List<String>? genders,
-    bool? vaccinated,
-    bool? sterilized,
-    bool? goodWithKids,
-    bool? goodWithPets,
-    int? maxAge,
-    int? minAge,
-    PetLocationEntity? location,
-    double? radiusInKm,
-  }) {
-    return _searchPetsUseCase(
-      query: query,
-      categories: categories,
-      sizes: sizes,
-      genders: genders,
-      vaccinated: vaccinated,
-      sterilized: sterilized,
-      goodWithKids: goodWithKids,
-      goodWithPets: goodWithPets,
-      maxAge: maxAge,
-      minAge: minAge,
-      location: location,
-      radiusInKm: radiusInKm,
-    ).map((either) {
-      return either.fold(
-        (failure) {
-          _setError(_mapFailureToMessage(failure));
-          return null;
-        },
-        (pets) {
-          _clearError();
-          return pets;
-        },
-      );
-    });
-  }
-
-  Stream<List<PetEntity>?> getPetsNearLocation(
-    PetLocationEntity location,
-    double radiusInKm,
-  ) {
-    return _getPetsNearLocationUseCase(location, radiusInKm).map((either) {
-      return either.fold(
-        (failure) {
-          _setError(_mapFailureToMessage(failure));
-          return null;
-        },
-        (pets) {
-          _clearError();
-          return pets;
-        },
-      );
-    });
+  Future<void> refreshPets() async {
+    // Para pull-to-refresh
+    await loadPetsOnce();
   }
 
   Future<void> getPetById(String petId) async {
@@ -145,6 +143,12 @@ class PetProvider extends ChangeNotifier {
       },
       (petId) {
         _setCreateUpdateState(PetState.success);
+
+        final newPet = pet.copyWith(id: petId);
+        _allPets.add(newPet);
+        _organizePetsByCategory();
+        notifyListeners();
+
         return petId;
       },
     );
@@ -162,6 +166,14 @@ class PetProvider extends ChangeNotifier {
       },
       (_) {
         _setCreateUpdateState(PetState.success);
+
+        final index = _allPets.indexWhere((p) => p.id == pet.id);
+        if (index != -1) {
+          _allPets[index] = pet;
+          _organizePetsByCategory();
+          notifyListeners();
+        }
+
         return true;
       },
     );
@@ -179,12 +191,52 @@ class PetProvider extends ChangeNotifier {
       },
       (_) {
         _setState(PetState.success);
+
+        _allPets.removeWhere((pet) => pet.id == petId);
+        _organizePetsByCategory();
+        notifyListeners();
+
         return true;
       },
     );
   }
 
-  // Utils
+  Future<List<PetEntity>> searchPets({
+    String? query,
+    List<String>? categories,
+    List<String>? sizes,
+    List<String>? genders,
+    bool? vaccinated,
+    bool? sterilized,
+    bool? goodWithKids,
+    bool? goodWithPets,
+    int? maxAge,
+    int? minAge,
+    PetLocationEntity? location,
+    double? radiusInKm,
+  }) async {
+    final result =
+        await _searchPetsUseCase(
+          query: query,
+          categories: categories,
+          sizes: sizes,
+          genders: genders,
+          vaccinated: vaccinated,
+          sterilized: sterilized,
+          goodWithKids: goodWithKids,
+          goodWithPets: goodWithPets,
+          maxAge: maxAge,
+          minAge: minAge,
+          location: location,
+          radiusInKm: radiusInKm,
+        ).first;
+
+    return result.fold((failure) {
+      _setError(_mapFailureToMessage(failure));
+      return [];
+    }, (pets) => pets);
+  }
+
   void _setState(PetState newState) {
     _state = newState;
     if (newState != PetState.error) {
@@ -196,13 +248,6 @@ class PetProvider extends ChangeNotifier {
   void _setError(String message) {
     _errorMessage = message;
     _setState(PetState.error);
-  }
-
-  void _clearError() {
-    _errorMessage = null;
-    if (_state == PetState.error) {
-      _setState(PetState.initial);
-    }
   }
 
   void _setCreateUpdateState(PetState newState) {
@@ -240,5 +285,11 @@ class PetProvider extends ChangeNotifier {
       default:
         return 'Error inesperado';
     }
+  }
+
+  @override
+  void dispose() {
+    stopRealtimeUpdates();
+    super.dispose();
   }
 }

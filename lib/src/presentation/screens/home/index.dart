@@ -1,13 +1,15 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/data/pet_categories.dart';
-import 'package:pet_adoption_app/src/core/data/pets.dart';
+import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
+import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home/widgets/pet_card.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
+import 'package:provider/provider.dart';
 
 final categories = petCategories;
-final pets = petsByCategory;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,18 +23,40 @@ class _HomeScreenState extends State<HomeScreen> {
   CarouselSliderController carouselController = CarouselSliderController();
   int currentPetIndex = 0;
 
-  List<Pet> get currentPets => pets[categories[selectedCategoryIndex].id] ?? [];
+  String get selectedCategoryName =>
+      categories[selectedCategoryIndex].name.toLowerCase();
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar tiempo real
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PetProvider>().startRealtimeUpdates();
+      // Iniciar listener para la categoría actual
+      context.read<PetProvider>().startCategoryListener(selectedCategoryName);
+    });
+  }
 
   @override
   void dispose() {
+    // Detener tiempo real al salir
+    context.read<PetProvider>().stopRealtimeUpdates();
     super.dispose();
   }
 
   void _onCategorySelected(int index) {
+    final provider = context.read<PetProvider>();
+
+    // Detener listener de categoría anterior
+    provider.stopCategoryListener(selectedCategoryName);
+
     setState(() {
       selectedCategoryIndex = index;
       currentPetIndex = 0;
     });
+
+    // Iniciar listener para nueva categoría
+    provider.startCategoryListener(selectedCategoryName);
 
     carouselController.animateToPage(
       0,
@@ -41,28 +65,49 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Future<void> _handleRefresh() async {
+    await context.read<PetProvider>().refreshPets();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              _buildHeader(theme),
-              const SizedBox(height: 20),
-              _buildSearchButton(),
-              const SizedBox(height: 20),
-              _buildCategories(theme),
-              const SizedBox(height: 20),
-              Expanded(child: _buildPetCarousel()),
-              const SizedBox(height: 20),
-            ],
+        child: RefreshIndicator(
+          onRefresh: _handleRefresh,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  _buildHeader(theme),
+                  const SizedBox(height: 20),
+                  _buildSearchButton(),
+                  const SizedBox(height: 20),
+                  _buildCategories(theme),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: _buildPetContent(),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.push('/pet-registration');
+        },
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: theme.colorScheme.onPrimary,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -93,15 +138,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSearchButton() {
-    return GestureDetector(
-      onTap: () {
-        // Navegación a pantalla de búsqueda
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navegando a búsqueda...')),
-        );
-      },
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),
@@ -197,26 +238,109 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPetCarousel() {
-    if (currentPets.isEmpty) {
-      return const Center(
-        child: Text(
-          'No hay mascotas disponibles',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-      );
-    }
+  Widget _buildPetContent() {
+    return Consumer<PetProvider>(
+      builder: (context, provider, child) {
+        final pets = provider.getPetsByCategory(selectedCategoryName);
+        final isLoading = provider.state == PetState.loading && pets.isEmpty;
+        final hasError = provider.state == PetState.error;
 
+        if (isLoading) {
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Cargando mascotas...'),
+              ],
+            ),
+          );
+        }
+
+        if (hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+                const SizedBox(height: 16),
+                Text(
+                  'Error al cargar mascotas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.errorMessage ?? 'Error desconocido',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _handleRefresh,
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (pets.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.pets, size: 64, color: Colors.grey.shade400),
+                const SizedBox(height: 16),
+                Text(
+                  'No hay ${categories[selectedCategoryIndex].name.toLowerCase()} disponibles',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Sé el primero en publicar un ${categories[selectedCategoryIndex].name.toLowerCase().substring(0, categories[selectedCategoryIndex].name.length - 1)}',
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.push('/pet-registration');
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Publicar Mascota'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return _buildPetCarousel(pets);
+      },
+    );
+  }
+
+  Widget _buildPetCarousel(List<PetEntity> pets) {
     return CarouselSlider(
       carouselController: carouselController,
-      items: currentPets.map((pet) => PetCard(pet: pet)).toList(),
+      items: pets.map((pet) => PetCard(pet: pet)).toList(),
       options: CarouselOptions(
         height: double.infinity,
         enlargeCenterPage: true,
+        enableInfiniteScroll: pets.length > 1,
         onPageChanged: (index, reason) {
           setState(() {
             HapticFeedback.selectionClick();
-            currentPetIndex = index % currentPets.length;
+            currentPetIndex = index % pets.length;
           });
         },
       ),

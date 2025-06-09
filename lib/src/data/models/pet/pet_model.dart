@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pet_adoption_app/src/data/models/pet/pet_location_model.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
+import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
 
 class PetModel extends PetEntity {
   const PetModel({
@@ -120,7 +121,7 @@ class PetModel extends PetEntity {
       'goodWithStrangers': goodWithStrangers,
       'description': description,
       'imageUrls': imageUrls,
-      'location': (location as PetLocationModel).toMap(),
+      'location': _locationToMap(location),
       'ownerId': ownerId,
       'status': status.name,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -129,6 +130,16 @@ class PetModel extends PetEntity {
       'adoptionDate':
           adoptionDate != null ? Timestamp.fromDate(adoptionDate!) : null,
       'searchTags': _generateSearchTags(),
+    };
+  }
+
+  Map<String, dynamic> _locationToMap(PetLocationEntity location) {
+    return {
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+      'address': location.address,
+      'city': location.city,
+      'state': location.state,
     };
   }
 

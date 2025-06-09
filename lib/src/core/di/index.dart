@@ -109,4 +109,19 @@ Future<void> init() async {
   sl.registerLazySingleton<DeletePetUseCase>(
     () => DeletePetUseCase(sl<PetsRepository>()),
   );
+  sl.registerLazySingleton<GetPetsByOwnerUseCase>(
+    () => GetPetsByOwnerUseCase(sl<PetsRepository>()),
+  );
+  sl.registerLazySingleton<GetPetsNearLocationUseCase>(
+    () => GetPetsNearLocationUseCase(sl<PetsRepository>()),
+  );
+  sl.registerLazySingleton<SearchPetsUseCase>(
+    () => SearchPetsUseCase(sl<PetsRepository>()),
+  );
+  sl.registerLazySingleton<ToggleFavoriteUseCase>(
+    () => ToggleFavoriteUseCase(sl<PetsRepository>()),
+  );
+  sl.registerLazySingleton<GetFavoritePetsUseCase>(
+    () => GetFavoritePetsUseCase(sl<PetsRepository>()),
+  );
 }

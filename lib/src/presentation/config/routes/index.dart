@@ -5,6 +5,7 @@ import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_s
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_up_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart';
+import 'package:pet_adoption_app/src/presentation/screens/pets/registration/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/root_screen.dart';
 
 class AppRouter {
@@ -33,6 +34,10 @@ class AppRouter {
         builder: (context, state) => const EmailVerificationScreen(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const RootScreen()),
+      GoRoute(
+        path: '/pet-registration',
+        builder: (context, state) => const PetRegistrationScreen(),
+      ),
     ],
   );
 }
