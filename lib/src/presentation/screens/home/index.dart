@@ -37,13 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    // Detener tiempo real al salir
-    context.read<PetProvider>().stopRealtimeUpdates();
-    super.dispose();
-  }
-
   void _onCategorySelected(int index) {
     final provider = context.read<PetProvider>();
 

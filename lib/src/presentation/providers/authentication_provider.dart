@@ -5,6 +5,7 @@ import 'package:pet_adoption_app/src/core/di/index.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
+import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 
 enum AuthState { initial, loading, success, error }
@@ -15,6 +16,9 @@ class AuthenticationProvider extends ChangeNotifier {
   final SignInWithGoogleUseCase _signInWithGoogleUseCase =
       sl<SignInWithGoogleUseCase>();
   final SignOutUseCase _signOutUseCase = sl<SignOutUseCase>();
+
+  final CreateOrUpdateUserFromAuthUseCase _createOrUpdateUserFromAuthUseCase =
+      sl<CreateOrUpdateUserFromAuthUseCase>();
 
   AuthState _state = AuthState.initial;
   String? _errorMessage;
@@ -57,12 +61,19 @@ class AuthenticationProvider extends ChangeNotifier {
       ),
     );
 
-    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (
-      userCredential,
-    ) {
-      _currentUser = userCredential.user;
-      _setState(AuthState.success);
-    });
+    await result.fold(
+      (failure) async => _setError(_mapFailureToMessage(failure)),
+      (userCredential) async {
+        _currentUser = userCredential.user;
+
+        // Crear documento de usuario en Firestore
+        if (_currentUser != null) {
+          await _createOrUpdateUserDocument(_currentUser!);
+        }
+
+        _setState(AuthState.success);
+      },
+    );
   }
 
   Future<void> signInWithGoogle() async {
@@ -70,12 +81,19 @@ class AuthenticationProvider extends ChangeNotifier {
 
     final result = await _signInWithGoogleUseCase();
 
-    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (
-      userCredential,
-    ) {
-      _currentUser = userCredential.user;
-      _setState(AuthState.success);
-    });
+    await result.fold(
+      (failure) async => _setError(_mapFailureToMessage(failure)),
+      (userCredential) async {
+        _currentUser = userCredential.user;
+
+        // Crear o actualizar documento de usuario en Firestore
+        if (_currentUser != null) {
+          await _createOrUpdateUserDocument(_currentUser!);
+        }
+
+        _setState(AuthState.success);
+      },
+    );
   }
 
   Future<void> signOut() async {
@@ -87,6 +105,34 @@ class AuthenticationProvider extends ChangeNotifier {
       _currentUser = null;
       _setState(AuthState.initial);
     });
+  }
+
+  Future<void> _createOrUpdateUserDocument(User firebaseUser) async {
+    try {
+      final result = await _createOrUpdateUserFromAuthUseCase(firebaseUser);
+
+      result.fold(
+        (failure) {
+          debugPrint(
+            'Error al crear/actualizar documento de usuario: $failure',
+          );
+        },
+        (userEntity) {
+          debugPrint(
+            'Documento de usuario creado/actualizado: ${userEntity.id}',
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint('Error inesperado al crear documento de usuario: $e');
+    }
+  }
+
+  Future<void> syncCurrentUserWithFirestore() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      await _createOrUpdateUserDocument(firebaseUser);
+    }
   }
 
   void _setState(AuthState newState) {
