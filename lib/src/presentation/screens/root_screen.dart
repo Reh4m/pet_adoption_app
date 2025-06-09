@@ -72,9 +72,9 @@ class _RootScreenState extends State<RootScreen> {
           iconSize: 24,
           tabs: const <GButton>[
             GButton(icon: Icons.home_outlined, text: 'Home'),
-            GButton(icon: Icons.favorite_outline, text: 'Favorites'),
-            GButton(icon: Icons.chat_outlined, text: 'Notifications'),
-            GButton(icon: Icons.person_outline, text: 'Profile'),
+            GButton(icon: Icons.favorite_outline, text: 'Favoritos'),
+            GButton(icon: Icons.chat_outlined, text: 'Notificaciones'),
+            GButton(icon: Icons.person_outline, text: 'Perfil'),
           ],
           selectedIndex: _selectedIndex,
           onTabChange: _onItemTapped,
