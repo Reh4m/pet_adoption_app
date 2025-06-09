@@ -5,13 +5,18 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/pets_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/pets_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
+import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
 final sl = GetIt.instance;
 
@@ -49,6 +54,14 @@ Future<void> init() async {
     () => FirebaseStorageService(storage: sl<FirebaseStorage>()),
   );
 
+  // Firebase Users Service
+  sl.registerLazySingleton<FirebaseUsersService>(
+    () => FirebaseUsersService(
+      firestore: sl<FirebaseFirestore>(),
+      storage: sl<FirebaseStorage>(),
+    ),
+  );
+
   /* Repositories */
   // Authentication Repository
   sl.registerLazySingleton<AuthenticationRepository>(
@@ -62,6 +75,14 @@ Future<void> init() async {
   sl.registerLazySingleton<PetsRepository>(
     () => PetsRepositoryImpl(
       firebasePetsService: sl<FirebasePetsService>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // User Repository
+  sl.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(
+      firebaseUsersService: sl<FirebaseUsersService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -123,5 +144,63 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<GetFavoritePetsUseCase>(
     () => GetFavoritePetsUseCase(sl<PetsRepository>()),
+  );
+
+  // User Use Cases
+  sl.registerLazySingleton<GetUserByIdUseCase>(
+    () => GetUserByIdUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<GetCurrentUserUseCase>(
+    () => GetCurrentUserUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<GetCurrentUserStreamUseCase>(
+    () => GetCurrentUserStreamUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<CreateUserUseCase>(
+    () => CreateUserUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<UpdateUserUseCase>(
+    () => UpdateUserUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<DeleteUserUseCase>(
+    () => DeleteUserUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<UploadProfileImageUseCase>(
+    () => UploadProfileImageUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<UpdateProfileImageUseCase>(
+    () => UpdateProfileImageUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<ChangeProfilePhotoUseCase>(
+    () => ChangeProfilePhotoUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<IncrementPetsPostedUseCase>(
+    () => IncrementPetsPostedUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<IncrementPetsAdoptedUseCase>(
+    () => IncrementPetsAdoptedUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<DecrementPetsPostedUseCase>(
+    () => DecrementPetsPostedUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<UpdateNotificationSettingsUseCase>(
+    () => UpdateNotificationSettingsUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<UpdateSearchRadiusUseCase>(
+    () => UpdateSearchRadiusUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<MarkUserAsVerifiedUseCase>(
+    () => MarkUserAsVerifiedUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<CheckUserExistsUseCase>(
+    () => CheckUserExistsUseCase(sl<UserRepository>()),
+  );
+
+  // User-Auth Integration Use Cases
+  sl.registerLazySingleton<CreateOrUpdateUserFromAuthUseCase>(
+    () => CreateOrUpdateUserFromAuthUseCase(sl<UserRepository>()),
+  );
+  sl.registerLazySingleton<SyncUserWithAuthUseCase>(
+    () => SyncUserWithAuthUseCase(sl<UserRepository>()),
   );
 }
