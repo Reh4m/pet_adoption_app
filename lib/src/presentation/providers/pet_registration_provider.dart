@@ -5,9 +5,13 @@ import 'package:pet_adoption_app/src/core/di/index.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
 class PetRegistrationProvider extends ChangeNotifier {
   final CreatePetUseCase _createPetUseCase = sl<CreatePetUseCase>();
+  // UseCase to increment the number of pets posted by the user
+  final IncrementPetsPostedUseCase _incrementPetsPostedUseCase =
+      sl<IncrementPetsPostedUseCase>();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -237,12 +241,15 @@ class PetRegistrationProvider extends ChangeNotifier {
 
       final result = await _createPetUseCase(pet, _selectedImages);
 
-      return result.fold(
+      return await result.fold(
         (failure) {
           _setError('Error al registrar mascota: ${failure.toString()}');
           return false;
         },
-        (petId) {
+        (petId) async {
+          // Si la mascota se creó correctamente, incrementamos el contador de mascotas publicadas
+          await _incrementPetsPostedUseCase(currentUser.uid);
+
           _isCompleted = true;
           _setLoading(false);
           return true;

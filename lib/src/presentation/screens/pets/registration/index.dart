@@ -118,7 +118,7 @@ class _PetRegistrationScreenState extends State<PetRegistrationScreen> {
                 'Tu mascota ha sido publicada exitosamente y ya está disponible para adopción.',
             primaryButtonText: 'Ver en Inicio',
             primaryButtonVariant: ButtonVariant.primary,
-            primaryButtonIcon: Icons.home_outlined,
+            primaryButtonIcon: Icons.arrow_forward,
             onPrimaryPressed: () {
               Navigator.pop(context);
               context.go('/home');
