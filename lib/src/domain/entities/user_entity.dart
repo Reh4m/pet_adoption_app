@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
 
+enum UserAuthProvider { email, google }
+
 class UserEntity extends Equatable {
   final String id;
   final String name;
@@ -11,17 +13,20 @@ class UserEntity extends Equatable {
   final String? bio;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final UserAuthProvider authProvider;
 
   // Estadísticas del usuario
   final int petsPosted;
   final int petsAdopted;
-  final double rating;
-  final int totalReviews;
 
   // Configuraciones
   final bool notificationsEnabled;
   final bool emailNotificationsEnabled;
   final double searchRadius;
+
+  // Estado del usuario
+  final bool isActive;
+  final bool isVerified;
 
   const UserEntity({
     required this.id,
@@ -33,13 +38,14 @@ class UserEntity extends Equatable {
     this.bio,
     required this.createdAt,
     this.updatedAt,
+    required this.authProvider,
     this.petsPosted = 0,
     this.petsAdopted = 0,
-    this.rating = 0.0,
-    this.totalReviews = 0,
     this.notificationsEnabled = true,
     this.emailNotificationsEnabled = true,
     this.searchRadius = 50.0,
+    this.isActive = true,
+    this.isVerified = false,
   });
 
   @override
@@ -53,23 +59,23 @@ class UserEntity extends Equatable {
     bio,
     createdAt,
     updatedAt,
+    authProvider,
     petsPosted,
     petsAdopted,
-    rating,
-    totalReviews,
     notificationsEnabled,
     emailNotificationsEnabled,
     searchRadius,
+    isActive,
+    isVerified,
   ];
 
   bool get hasLocation => location != null;
   bool get hasPhoto => photoUrl != null && photoUrl!.isNotEmpty;
   bool get hasPhone => phoneNumber != null && phoneNumber!.isNotEmpty;
   bool get hasBio => bio != null && bio!.isNotEmpty;
-
-  String get ratingString => rating.toStringAsFixed(1);
-
   bool get isExperienced => petsPosted > 0 || petsAdopted > 0;
+  bool get isEmailProvider => authProvider == UserAuthProvider.email;
+  bool get isGoogleProvider => authProvider == UserAuthProvider.google;
 
   UserEntity copyWith({
     String? id,
@@ -81,13 +87,14 @@ class UserEntity extends Equatable {
     String? bio,
     DateTime? createdAt,
     DateTime? updatedAt,
+    UserAuthProvider? authProvider,
     int? petsPosted,
     int? petsAdopted,
-    double? rating,
-    int? totalReviews,
     bool? notificationsEnabled,
     bool? emailNotificationsEnabled,
     double? searchRadius,
+    bool? isActive,
+    bool? isVerified,
   }) {
     return UserEntity(
       id: id ?? this.id,
@@ -99,14 +106,30 @@ class UserEntity extends Equatable {
       bio: bio ?? this.bio,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      authProvider: authProvider ?? this.authProvider,
       petsPosted: petsPosted ?? this.petsPosted,
       petsAdopted: petsAdopted ?? this.petsAdopted,
-      rating: rating ?? this.rating,
-      totalReviews: totalReviews ?? this.totalReviews,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       emailNotificationsEnabled:
           emailNotificationsEnabled ?? this.emailNotificationsEnabled,
       searchRadius: searchRadius ?? this.searchRadius,
+      isActive: isActive ?? this.isActive,
+      isVerified: isVerified ?? this.isVerified,
     );
+  }
+
+  String get displayName {
+    if (name.isNotEmpty) return name;
+    return email.split('@').first;
+  }
+
+  bool get canEditPhoto => isEmailProvider;
+
+  String get initials {
+    final nameParts = displayName.split(' ');
+    if (nameParts.length >= 2) {
+      return '${nameParts[0][0]}${nameParts[1][0]}'.toUpperCase();
+    }
+    return displayName.isNotEmpty ? displayName[0].toUpperCase() : '?';
   }
 }
