@@ -83,3 +83,24 @@ class ProfileImageUploadFailure extends Failure {
   @override
   List<Object?> get props => [];
 }
+
+// Adoption Request Failures - NUEVOS
+class AdoptionRequestNotFoundFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class DuplicateAdoptionRequestFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class InvalidAdoptionRequestStatusFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class AdoptionRequestAccessDeniedFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}

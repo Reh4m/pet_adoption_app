@@ -25,3 +25,6 @@ class UnauthorizedUserOperationException implements Exception {}
 class UserUpdateFailedException implements Exception {}
 
 class ProfileImageUploadException implements Exception {}
+
+// Adoption Request Exceptions
+class AdoptionRequestNotFoundException implements Exception {}

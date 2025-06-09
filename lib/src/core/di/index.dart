@@ -3,16 +3,20 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
+import 'package:pet_adoption_app/src/data/implements/adoption_request_respository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/pets_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/adoption_requests_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/pets_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
+import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
+import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
@@ -62,6 +66,11 @@ Future<void> init() async {
     ),
   );
 
+  // Firebase Adoption Requests Service
+  sl.registerLazySingleton<FirebaseAdoptionRequestsService>(
+    () => FirebaseAdoptionRequestsService(firestore: sl<FirebaseFirestore>()),
+  );
+
   /* Repositories */
   // Authentication Repository
   sl.registerLazySingleton<AuthenticationRepository>(
@@ -83,6 +92,14 @@ Future<void> init() async {
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
       firebaseUsersService: sl<FirebaseUsersService>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // Adoption Requests Repository
+  sl.registerLazySingleton<AdoptionRequestsRepository>(
+    () => AdoptionRequestsRepositoryImpl(
+      firebaseService: sl<FirebaseAdoptionRequestsService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -202,5 +219,43 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<SyncUserWithAuthUseCase>(
     () => SyncUserWithAuthUseCase(sl<UserRepository>()),
+  );
+
+  // Adoption Requests Use Cases
+  sl.registerLazySingleton<CreateAdoptionRequestUseCase>(
+    () => CreateAdoptionRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<GetReceivedRequestsUseCase>(
+    () => GetReceivedRequestsUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<GetSentRequestsUseCase>(
+    () => GetSentRequestsUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<GetRequestsForPetUseCase>(
+    () => GetRequestsForPetUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<GetRequestByIdUseCase>(
+    () => GetRequestByIdUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<HasExistingRequestUseCase>(
+    () => HasExistingRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<AcceptRequestUseCase>(
+    () => AcceptRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<RejectRequestUseCase>(
+    () => RejectRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<CancelRequestUseCase>(
+    () => CancelRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<CompleteRequestUseCase>(
+    () => CompleteRequestUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<GetRequestStatisticsUseCase>(
+    () => GetRequestStatisticsUseCase(sl<AdoptionRequestsRepository>()),
+  );
+  sl.registerLazySingleton<RejectPendingRequestsForPetUseCase>(
+    () => RejectPendingRequestsForPetUseCase(sl<AdoptionRequestsRepository>()),
   );
 }
