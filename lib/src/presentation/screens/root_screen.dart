@@ -29,23 +29,63 @@ class _RootScreenState extends State<RootScreen> {
       const CurrentUserProfileScreen(),
     ];
 
-    // Inicializar UserProvider y sincronizar con Auth
+    // Inicializar providers después de que el widget se construya
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
       final authProvider = context.read<AuthenticationProvider>();
+      final adoptionProvider = context.read<AdoptionRequestProvider>();
 
       // Sincronizar usuario actual con Firestore si existe
       authProvider.syncCurrentUserWithFirestore();
 
       // Inicializar listener del usuario
       userProvider.startCurrentUserListener();
+
+      // Inicializar listeners de solicitudes de adopción
+      _initializeAdoptionRequestListeners(userProvider, adoptionProvider);
     });
+  }
+
+  void _initializeAdoptionRequestListeners(
+    UserProvider userProvider,
+    AdoptionRequestProvider adoptionProvider,
+  ) {
+    // Escuchar cambios en el usuario actual
+    userProvider.addListener(() {
+      final currentUser = userProvider.currentUser;
+
+      if (currentUser != null) {
+        // Iniciar listeners de solicitudes solo cuando tengamos un usuario
+        adoptionProvider.startReceivedRequestsListener(currentUser.id);
+        adoptionProvider.startSentRequestsListener(currentUser.id);
+      } else {
+        // Detener listeners si el usuario se desloguea
+        adoptionProvider.stopAllListeners();
+      }
+    });
+
+    // Si ya tenemos un usuario actual, inicializar inmediatamente
+    final currentUser = userProvider.currentUser;
+    if (currentUser != null) {
+      adoptionProvider.startReceivedRequestsListener(currentUser.id);
+      adoptionProvider.startSentRequestsListener(currentUser.id);
+    }
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AdoptionRequestProvider>().stopAllListeners();
+      }
+    });
+    super.dispose();
   }
 
   @override
