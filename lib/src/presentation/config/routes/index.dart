@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/presentation/config/routes/auth_guard.dart';
+import 'package:pet_adoption_app/src/presentation/screens/adoption/received_requests_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/adoption/request_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/adoption/sent_requests_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/email_verification_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
@@ -85,6 +88,30 @@ class AppRouter {
 
           return EditUserSettingsScreen(user: user);
         },
+      ),
+      GoRoute(
+        path: '/adoption/request/:petId',
+        builder: (context, state) {
+          final pet = state.extra != null ? (state.extra as Map)['pet'] : null;
+
+          if (pet == null) {
+            return const Scaffold(
+              body: Center(
+                child: Text('No se pudo cargar la información de la mascota'),
+              ),
+            );
+          }
+
+          return AdoptionRequestScreen(pet: pet);
+        },
+      ),
+      GoRoute(
+        path: '/adoption/received',
+        builder: (context, state) => const ReceivedRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/adoption/sent',
+        builder: (context, state) => const SentRequestsScreen(),
       ),
     ],
   );

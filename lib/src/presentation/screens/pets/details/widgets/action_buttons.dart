@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
@@ -14,6 +15,10 @@ class ActionButtons extends StatelessWidget {
     required this.onInterest,
     required this.onContact,
   });
+
+  void _handleAdoptionRequest(BuildContext context) {
+    context.push('/adoption/request/${pet.id}', extra: {'pet': pet});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,22 +37,22 @@ class ActionButtons extends StatelessWidget {
         ],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: SafeArea(child: _buildButtonsForStatus(theme)),
+      child: SafeArea(child: _buildButtonsForStatus(context, theme)),
     );
   }
 
-  Widget _buildButtonsForStatus(ThemeData theme) {
+  Widget _buildButtonsForStatus(BuildContext context, ThemeData theme) {
     switch (pet.status) {
       case PetStatus.available:
-        return _buildAvailableButtons(theme);
+        return _buildAvailableButtons(context, theme);
       case PetStatus.pending:
-        return _buildPendingButtons(theme);
+        return _buildPendingButtons(context, theme);
       case PetStatus.adopted:
         return _buildAdoptedButtons(theme);
     }
   }
 
-  Widget _buildAvailableButtons(ThemeData theme) {
+  Widget _buildAvailableButtons(BuildContext context, ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -69,16 +74,11 @@ class ActionButtons extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: ElevatedButton.icon(
-                onPressed: onInterest,
+              child: CustomButton(
+                text: '¡Quiero adoptarlo!',
+                onPressed: () => _handleAdoptionRequest(context),
                 icon: const Icon(Icons.favorite, size: 20),
-                label: const Text('¡Me interesa!'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  elevation: 0,
-                ),
+                height: 56,
               ),
             ),
           ],
@@ -88,7 +88,7 @@ class ActionButtons extends StatelessWidget {
     );
   }
 
-  Widget _buildPendingButtons(ThemeData theme) {
+  Widget _buildPendingButtons(BuildContext context, ThemeData theme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -133,10 +133,11 @@ class ActionButtons extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         CustomButton(
-          onPressed: () {},
+          onPressed: () => _handleAdoptionRequest(context),
           text: 'Unirse a la lista de espera',
           variant: ButtonVariant.outline,
           width: double.infinity,
+          icon: const Icon(Icons.schedule, size: 20),
         ),
         const SizedBox(height: 20),
       ],
