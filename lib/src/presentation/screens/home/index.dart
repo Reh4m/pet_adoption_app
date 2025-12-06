@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/data/pet_categories.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
+import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home/widgets/pet_card.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
@@ -123,8 +124,43 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         IconButton(
-          icon: const Icon(Icons.notifications_none_rounded, size: 25),
-          onPressed: () {},
+          icon: Consumer<ChatProvider>(
+            builder: (context, chatProvider, child) {
+              final unreadCount = chatProvider.totalUnreadCount;
+
+              return Stack(
+                children: [
+                  const Icon(Icons.chat_bubble_outline, size: 25),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.secondary,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          unreadCount > 9 ? '9+' : '$unreadCount',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSecondary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          onPressed: () => context.push('/chats'),
         ),
       ],
     );

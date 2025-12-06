@@ -8,6 +8,8 @@ import 'package:pet_adoption_app/src/presentation/screens/auth/email_verificatio
 import 'package:pet_adoption_app/src/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_in_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/auth/sign_up_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/chats/chat_list_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/chats/chat_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/details/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/registration/index.dart';
@@ -112,6 +114,20 @@ class AppRouter {
       GoRoute(
         path: '/adoption/sent',
         builder: (context, state) => const SentRequestsScreen(),
+      ),
+      GoRoute(
+        path: '/chats',
+        builder: (context, state) => const ChatListScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:chatId',
+        builder: (context, state) {
+          final chatId = state.pathParameters['chatId']!;
+          final chat =
+              state.extra != null ? (state.extra as Map)['chat'] : null;
+
+          return ChatScreen(chatId: chatId, chat: chat);
+        },
       ),
     ],
   );

@@ -58,7 +58,7 @@ class PetNotFoundFailure extends Failure {
   List<Object?> get props => [];
 }
 
-// User Failures - NUEVOS
+// User Failures
 class UserAlreadyExistsFailure extends Failure {
   @override
   List<Object?> get props => [];
@@ -84,7 +84,7 @@ class ProfileImageUploadFailure extends Failure {
   List<Object?> get props => [];
 }
 
-// Adoption Request Failures - NUEVOS
+// Adoption Request Failures
 class AdoptionRequestNotFoundFailure extends Failure {
   @override
   List<Object?> get props => [];
@@ -101,6 +101,37 @@ class InvalidAdoptionRequestStatusFailure extends Failure {
 }
 
 class AdoptionRequestAccessDeniedFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+// Chat Failures
+class ChatNotFoundFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class ChatAlreadyExistsFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class MessageNotFoundFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class InvalidChatParticipantFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class ChatAccessDeniedFailure extends Failure {
+  @override
+  List<Object?> get props => [];
+}
+
+class MessageSendFailedFailure extends Failure {
   @override
   List<Object?> get props => [];
 }

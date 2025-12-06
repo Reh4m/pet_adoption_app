@@ -28,3 +28,16 @@ class ProfileImageUploadException implements Exception {}
 
 // Adoption Request Exceptions
 class AdoptionRequestNotFoundException implements Exception {}
+
+// Chat Exceptions
+class ChatNotFoundException implements Exception {}
+
+class ChatAlreadyExistsException implements Exception {}
+
+class MessageNotFoundException implements Exception {}
+
+class InvalidChatParticipantException implements Exception {}
+
+class ChatAccessDeniedException implements Exception {}
+
+class MessageSendFailedException implements Exception {}

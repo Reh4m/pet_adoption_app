@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dart';
 import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/screens/adoption/widgets/request_action_buttons.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class AdoptionRequestCard extends StatelessWidget {
@@ -38,6 +39,8 @@ class AdoptionRequestCard extends StatelessWidget {
             _buildHeader(theme),
             const SizedBox(height: 20),
             _buildContent(theme),
+            const SizedBox(height: 20),
+            RequestActionButtons(request: request, isReceived: isOwnerView),
             const SizedBox(height: 20),
             _buildFooter(theme),
           ],

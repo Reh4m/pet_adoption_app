@@ -7,6 +7,7 @@ import 'package:pet_adoption_app/src/core/utils/timeago_config.dart';
 import 'package:pet_adoption_app/src/presentation/config/routes/index.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/onboarding_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_registration_provider.dart';
@@ -36,6 +37,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PetProvider()),
         ChangeNotifierProvider(create: (_) => PetRegistrationProvider()),
         ChangeNotifierProvider(create: (_) => AdoptionRequestProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const MyApp(),
     ),

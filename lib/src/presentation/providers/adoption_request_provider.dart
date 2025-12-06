@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dart';
+import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
+import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
+import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 
 enum AdoptionRequestState { initial, loading, success, error }
 
@@ -25,6 +29,10 @@ class AdoptionRequestProvider extends ChangeNotifier {
       sl<CompleteRequestUseCase>();
   final GetRequestStatisticsUseCase _getRequestStatisticsUseCase =
       sl<GetRequestStatisticsUseCase>();
+  final InitiateChatFromAdoptionRequestUseCase _initiateChatUseCase =
+      sl<InitiateChatFromAdoptionRequestUseCase>();
+  final SendAdoptionStatusUpdateUseCase _sendStatusUpdateUseCase =
+      sl<SendAdoptionStatusUpdateUseCase>();
 
   AdoptionRequestState _state = AdoptionRequestState.initial;
   String? _errorMessage;
@@ -219,6 +227,95 @@ class AdoptionRequestProvider extends ChangeNotifier {
       _requestStatistics = statistics;
       notifyListeners();
     });
+  }
+
+  Future<ChatEntity?> initiateChatFromRequest(String adoptionRequestId) async {
+    final result = await _initiateChatUseCase(adoptionRequestId);
+
+    return result.fold((failure) {
+      _setError(_mapFailureToMessage(failure));
+      return null;
+    }, (chat) => chat);
+  }
+
+  Future<bool> acceptRequestWithChat(String requestId, {String? notes}) async {
+    _setResponseState(AdoptionRequestState.loading);
+
+    // Primero aceptar la solicitud
+    final acceptResult = await _acceptRequestUseCase(requestId, notes: notes);
+
+    return await acceptResult.fold(
+      (failure) async {
+        _setResponseError(_mapFailureToMessage(failure));
+        return false;
+      },
+      (_) async {
+        // Obtener la solicitud para tener los datos completos
+        final request = _receivedRequests.firstWhere((r) => r.id == requestId);
+
+        // Crear chat automáticamente
+        final chatProvider = sl<ChatProvider>();
+        final userProvider = sl<UserProvider>();
+
+        final currentUser = userProvider.currentUser;
+
+        if (currentUser != null) {
+          await chatProvider.createOrGetChat(
+            adoptionRequestId: requestId,
+            petId: request.petId,
+            petName: request.petName,
+            petImageUrls: request.petImageUrls,
+            requesterId: request.requesterId,
+            requesterName: request.requesterName,
+            requesterPhotoUrl: request.requesterPhotoUrl,
+            ownerId: currentUser.id,
+            ownerName: currentUser.displayName,
+            ownerPhotoUrl: currentUser.photoUrl,
+          );
+        }
+
+        // Enviar mensaje del sistema al chat
+        await _sendStatusUpdateUseCase(
+          adoptionRequestId: requestId,
+          newStatus: AdoptionRequestStatus.accepted,
+          additionalMessage: notes,
+        );
+
+        _setResponseState(AdoptionRequestState.success);
+        return true;
+      },
+    );
+  }
+
+  Future<bool> rejectRequestWithChat(
+    String requestId, {
+    required String rejectionReason,
+  }) async {
+    _setResponseState(AdoptionRequestState.loading);
+
+    // Primero rechazar la solicitud
+    final rejectResult = await _rejectRequestUseCase(
+      requestId,
+      rejectionReason: rejectionReason,
+    );
+
+    return await rejectResult.fold(
+      (failure) async {
+        _setResponseError(_mapFailureToMessage(failure));
+        return false;
+      },
+      (_) async {
+        // Luego enviar mensaje del sistema al chat
+        await _sendStatusUpdateUseCase(
+          adoptionRequestId: requestId,
+          newStatus: AdoptionRequestStatus.rejected,
+          additionalMessage: rejectionReason,
+        );
+
+        _setResponseState(AdoptionRequestState.success);
+        return true;
+      },
+    );
   }
 
   void stopAllListeners() {

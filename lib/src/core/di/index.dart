@@ -5,20 +5,25 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/implements/adoption_request_respository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/implements/chat_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/pets_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/adoption_requests_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/chat_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/pets_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
 import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/chat_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
+import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
@@ -71,6 +76,11 @@ Future<void> init() async {
     () => FirebaseAdoptionRequestsService(firestore: sl<FirebaseFirestore>()),
   );
 
+  // Firebase Chat Service
+  sl.registerLazySingleton<FirebaseChatService>(
+    () => FirebaseChatService(firestore: sl<FirebaseFirestore>()),
+  );
+
   /* Repositories */
   // Authentication Repository
   sl.registerLazySingleton<AuthenticationRepository>(
@@ -100,6 +110,14 @@ Future<void> init() async {
   sl.registerLazySingleton<AdoptionRequestsRepository>(
     () => AdoptionRequestsRepositoryImpl(
       firebaseService: sl<FirebaseAdoptionRequestsService>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // Chat Repository
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(
+      firebaseChatService: sl<FirebaseChatService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -257,5 +275,76 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<RejectPendingRequestsForPetUseCase>(
     () => RejectPendingRequestsForPetUseCase(sl<AdoptionRequestsRepository>()),
+  );
+
+  // Chat Use Cases
+  sl.registerLazySingleton<CreateChatUseCase>(
+    () => CreateChatUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<GetChatByAdoptionRequestIdUseCase>(
+    () => GetChatByAdoptionRequestIdUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<GetChatByIdUseCase>(
+    () => GetChatByIdUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<GetUserChatsUseCase>(
+    () => GetUserChatsUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<UpdateChatStatusUseCase>(
+    () => UpdateChatStatusUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<ArchiveChatUseCase>(
+    () => ArchiveChatUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<DeleteChatUseCase>(
+    () => DeleteChatUseCase(sl<ChatRepository>()),
+  );
+
+  // Message Use Cases
+  sl.registerLazySingleton<SendMessageUseCase>(
+    () => SendMessageUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<GetChatMessagesUseCase>(
+    () => GetChatMessagesUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<MarkMessageAsReadUseCase>(
+    () => MarkMessageAsReadUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<MarkAllMessagesAsReadUseCase>(
+    () => MarkAllMessagesAsReadUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<DeleteMessageUseCase>(
+    () => DeleteMessageUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<GetUnreadMessagesCountUseCase>(
+    () => GetUnreadMessagesCountUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<UpdateUnreadCountUseCase>(
+    () => UpdateUnreadCountUseCase(sl<ChatRepository>()),
+  );
+  sl.registerLazySingleton<SendSystemMessageUseCase>(
+    () => SendSystemMessageUseCase(sl<ChatRepository>()),
+  );
+
+  // Combined Use Case
+  sl.registerLazySingleton<CreateOrGetChatUseCase>(
+    () => CreateOrGetChatUseCase(
+      getChatByAdoptionRequestId: sl<GetChatByAdoptionRequestIdUseCase>(),
+      createChat: sl<CreateChatUseCase>(),
+    ),
+  );
+
+  // Adoption Integration Use Cases
+  sl.registerLazySingleton<InitiateChatFromAdoptionRequestUseCase>(
+    () => InitiateChatFromAdoptionRequestUseCase(
+      chatRepository: sl<ChatRepository>(),
+      adoptionRepository: sl<AdoptionRequestsRepository>(),
+      petsRepository: sl<PetsRepository>(),
+      userRepository: sl<UserRepository>(),
+    ),
+  );
+
+  sl.registerLazySingleton<SendAdoptionStatusUpdateUseCase>(
+    () => SendAdoptionStatusUpdateUseCase(sl<ChatRepository>()),
   );
 }

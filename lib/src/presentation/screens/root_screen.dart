@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/requests_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/chats/chat_list_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/index.dart';
 import 'package:provider/provider.dart';
@@ -24,7 +26,7 @@ class _RootScreenState extends State<RootScreen> {
     super.initState();
     _pages = [
       const HomeScreen(),
-      const PlaceholderScreen(title: 'Favoritos'),
+      const ChatListScreen(),
       const AdoptionRequestsMainScreen(),
       const CurrentUserProfileScreen(),
     ];
@@ -50,6 +52,8 @@ class _RootScreenState extends State<RootScreen> {
     UserProvider userProvider,
     AdoptionRequestProvider adoptionProvider,
   ) {
+    final chatProvider = context.read<ChatProvider>();
+
     // Escuchar cambios en el usuario actual
     userProvider.addListener(() {
       final currentUser = userProvider.currentUser;
@@ -58,9 +62,13 @@ class _RootScreenState extends State<RootScreen> {
         // Iniciar listeners de solicitudes solo cuando tengamos un usuario
         adoptionProvider.startReceivedRequestsListener(currentUser.id);
         adoptionProvider.startSentRequestsListener(currentUser.id);
+        // Iniciar listeners de chat
+        chatProvider.startUserChatsListener(currentUser.id);
+        chatProvider.loadUnreadMessagesCount(currentUser.id);
       } else {
         // Detener listeners si el usuario se desloguea
         adoptionProvider.stopAllListeners();
+        chatProvider.stopUserChatsListener();
       }
     });
 
@@ -69,6 +77,8 @@ class _RootScreenState extends State<RootScreen> {
     if (currentUser != null) {
       adoptionProvider.startReceivedRequestsListener(currentUser.id);
       adoptionProvider.startSentRequestsListener(currentUser.id);
+      chatProvider.startUserChatsListener(currentUser.id);
+      chatProvider.loadUnreadMessagesCount(currentUser.id);
     }
   }
 
@@ -123,7 +133,62 @@ class _RootScreenState extends State<RootScreen> {
               iconSize: 24,
               tabs: <GButton>[
                 const GButton(icon: Icons.home_outlined, text: 'Home'),
-                const GButton(icon: Icons.favorite_outline, text: 'Favoritos'),
+                GButton(
+                  icon: Icons.chat_bubble_outline,
+                  text: 'Chats',
+                  leading: Consumer<ChatProvider>(
+                    builder: (context, chatProvider, child) {
+                      final unreadCount = chatProvider.totalUnreadCount;
+
+                      if (unreadCount > 0) {
+                        return Stack(
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              size: 24,
+                              color:
+                                  _selectedIndex == 1
+                                      ? theme.colorScheme.secondary
+                                      : theme.colorScheme.onSurface,
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.secondary,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 12,
+                                  minHeight: 12,
+                                ),
+                                child: Text(
+                                  unreadCount > 9 ? '9+' : '$unreadCount',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSecondary,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return Icon(
+                        Icons.chat_bubble_outline,
+                        size: 24,
+                        color:
+                            _selectedIndex == 1
+                                ? theme.colorScheme.secondary
+                                : theme.colorScheme.onSurface,
+                      );
+                    },
+                  ),
+                ),
                 GButton(
                   icon:
                       pendingNotifications > 0
