@@ -3,10 +3,10 @@ import 'package:dartz/dartz.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
-import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 
 class GetAllPetsUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetAllPetsUseCase(this.repository);
 
@@ -16,7 +16,7 @@ class GetAllPetsUseCase {
 }
 
 class GetPetsByCategoryUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetPetsByCategoryUseCase(this.repository);
 
@@ -26,7 +26,7 @@ class GetPetsByCategoryUseCase {
 }
 
 class GetPetByIdUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetPetByIdUseCase(this.repository);
 
@@ -36,7 +36,7 @@ class GetPetByIdUseCase {
 }
 
 class CreatePetUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   CreatePetUseCase(this.repository);
 
@@ -46,7 +46,7 @@ class CreatePetUseCase {
 }
 
 class UpdatePetUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   UpdatePetUseCase(this.repository);
 
@@ -56,7 +56,7 @@ class UpdatePetUseCase {
 }
 
 class DeletePetUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   DeletePetUseCase(this.repository);
 
@@ -66,7 +66,7 @@ class DeletePetUseCase {
 }
 
 class GetPetsByOwnerUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetPetsByOwnerUseCase(this.repository);
 
@@ -76,7 +76,7 @@ class GetPetsByOwnerUseCase {
 }
 
 class GetPetsNearLocationUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetPetsNearLocationUseCase(this.repository);
 
@@ -89,7 +89,7 @@ class GetPetsNearLocationUseCase {
 }
 
 class SearchPetsUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   SearchPetsUseCase(this.repository);
 
@@ -125,7 +125,7 @@ class SearchPetsUseCase {
 }
 
 class ToggleFavoriteUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   ToggleFavoriteUseCase(this.repository);
 
@@ -135,7 +135,7 @@ class ToggleFavoriteUseCase {
 }
 
 class GetFavoritePetsUseCase {
-  final PetsRepository repository;
+  final PetRepository repository;
 
   GetFavoritePetsUseCase(this.repository);
 

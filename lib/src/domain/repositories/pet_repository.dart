@@ -4,7 +4,7 @@ import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
 
-abstract class PetsRepository {
+abstract class PetRepository {
   // Obtener mascotas
   Stream<Either<Failure, List<PetEntity>>> getAllPets();
 

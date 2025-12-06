@@ -1,18 +1,14 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
 import 'package:pet_adoption_app/src/data/models/pet/pet_model.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
 
-class FirebasePetsService {
+class FirebasePetService {
   final FirebaseFirestore firestore;
-  final FirebaseStorage storage;
   late final FirebaseStorageService storageService;
 
-  FirebasePetsService({required this.firestore, required this.storage}) {
-    storageService = FirebaseStorageService(storage: storage);
-  }
+  FirebasePetService({required this.firestore, required this.storageService});
 
   static const String _petsCollection = 'pets';
 

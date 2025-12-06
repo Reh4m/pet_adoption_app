@@ -4,19 +4,19 @@ import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dar
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/chat_repository.dart';
-import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 
 class InitiateChatFromAdoptionRequestUseCase {
   final ChatRepository chatRepository;
   final AdoptionRequestsRepository adoptionRepository;
-  final PetsRepository petsRepository;
+  final PetRepository petRepository;
   final UserRepository userRepository;
 
   InitiateChatFromAdoptionRequestUseCase({
     required this.chatRepository,
     required this.adoptionRepository,
-    required this.petsRepository,
+    required this.petRepository,
     required this.userRepository,
   });
 
@@ -31,7 +31,7 @@ class InitiateChatFromAdoptionRequestUseCase {
         request,
       ) async {
         // 2. Obtener información de la mascota
-        final petResult = await petsRepository.getPetById(request.petId);
+        final petResult = await petRepository.getPetById(request.petId);
 
         return await petResult.fold((failure) async => Left(failure), (
           pet,

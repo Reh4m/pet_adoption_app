@@ -7,18 +7,18 @@ import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/implements/adoption_request_respository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/chat_repository_impl.dart';
-import 'package:pet_adoption_app/src/data/implements/pets_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/implements/pet_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/adoption_requests_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/chat_service.dart';
-import 'package:pet_adoption_app/src/data/sources/firebase/pets_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/pet_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
 import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/chat_repository.dart';
-import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
@@ -52,10 +52,10 @@ Future<void> init() async {
   );
 
   // Firebase Pets Service
-  sl.registerLazySingleton<FirebasePetsService>(
-    () => FirebasePetsService(
+  sl.registerLazySingleton<FirebasePetService>(
+    () => FirebasePetService(
       firestore: sl<FirebaseFirestore>(),
-      storage: sl<FirebaseStorage>(),
+      storageService: sl<FirebaseStorageService>(),
     ),
   );
 
@@ -95,9 +95,9 @@ Future<void> init() async {
   );
 
   // Pets Repository
-  sl.registerLazySingleton<PetsRepository>(
-    () => PetsRepositoryImpl(
-      firebasePetsService: sl<FirebasePetsService>(),
+  sl.registerLazySingleton<PetRepository>(
+    () => PetRepositoryImpl(
+      firebasePetService: sl<FirebasePetService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -158,37 +158,37 @@ Future<void> init() async {
 
   // Pets Use Cases
   sl.registerLazySingleton<GetAllPetsUseCase>(
-    () => GetAllPetsUseCase(sl<PetsRepository>()),
+    () => GetAllPetsUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<GetPetsByCategoryUseCase>(
-    () => GetPetsByCategoryUseCase(sl<PetsRepository>()),
+    () => GetPetsByCategoryUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<GetPetByIdUseCase>(
-    () => GetPetByIdUseCase(sl<PetsRepository>()),
+    () => GetPetByIdUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<CreatePetUseCase>(
-    () => CreatePetUseCase(sl<PetsRepository>()),
+    () => CreatePetUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<UpdatePetUseCase>(
-    () => UpdatePetUseCase(sl<PetsRepository>()),
+    () => UpdatePetUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<DeletePetUseCase>(
-    () => DeletePetUseCase(sl<PetsRepository>()),
+    () => DeletePetUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<GetPetsByOwnerUseCase>(
-    () => GetPetsByOwnerUseCase(sl<PetsRepository>()),
+    () => GetPetsByOwnerUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<GetPetsNearLocationUseCase>(
-    () => GetPetsNearLocationUseCase(sl<PetsRepository>()),
+    () => GetPetsNearLocationUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<SearchPetsUseCase>(
-    () => SearchPetsUseCase(sl<PetsRepository>()),
+    () => SearchPetsUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<ToggleFavoriteUseCase>(
-    () => ToggleFavoriteUseCase(sl<PetsRepository>()),
+    () => ToggleFavoriteUseCase(sl<PetRepository>()),
   );
   sl.registerLazySingleton<GetFavoritePetsUseCase>(
-    () => GetFavoritePetsUseCase(sl<PetsRepository>()),
+    () => GetFavoritePetsUseCase(sl<PetRepository>()),
   );
 
   // User Use Cases
@@ -341,7 +341,7 @@ Future<void> init() async {
     () => InitiateChatFromAdoptionRequestUseCase(
       chatRepository: sl<ChatRepository>(),
       adoptionRepository: sl<AdoptionRequestsRepository>(),
-      petsRepository: sl<PetsRepository>(),
+      petRepository: sl<PetRepository>(),
       userRepository: sl<UserRepository>(),
     ),
   );

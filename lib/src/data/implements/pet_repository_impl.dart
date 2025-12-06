@@ -4,17 +4,17 @@ import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/models/pet/pet_model.dart';
-import 'package:pet_adoption_app/src/data/sources/firebase/pets_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/pet_service.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
-import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 
-class PetsRepositoryImpl implements PetsRepository {
-  final FirebasePetsService firebasePetsService;
+class PetRepositoryImpl implements PetRepository {
+  final FirebasePetService firebasePetService;
   final NetworkInfo networkInfo;
 
-  PetsRepositoryImpl({
-    required this.firebasePetsService,
+  PetRepositoryImpl({
+    required this.firebasePetService,
     required this.networkInfo,
   });
 
@@ -26,7 +26,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await for (final pets in firebasePetsService.getAllPets()) {
+      await for (final pets in firebasePetService.getAllPets()) {
         yield Right(pets.cast<PetEntity>());
       }
     } on ServerException {
@@ -46,9 +46,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await for (final pets in firebasePetsService.getPetsByCategory(
-        category,
-      )) {
+      await for (final pets in firebasePetService.getPetsByCategory(category)) {
         yield Right(pets.cast<PetEntity>());
       }
     } on ServerException {
@@ -65,7 +63,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      final pet = await firebasePetsService.getPetById(petId);
+      final pet = await firebasePetService.getPetById(petId);
       return Right(pet);
     } on PetNotFoundException {
       return Left(PetNotFoundFailure());
@@ -86,7 +84,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await for (final pets in firebasePetsService.getPetsByOwner(ownerId)) {
+      await for (final pets in firebasePetService.getPetsByOwner(ownerId)) {
         yield Right(pets.cast<PetEntity>());
       }
     } on ServerException {
@@ -107,7 +105,7 @@ class PetsRepositoryImpl implements PetsRepository {
 
     try {
       final petModel = PetModel.fromEntity(pet);
-      final petId = await firebasePetsService.createPet(petModel, images);
+      final petId = await firebasePetService.createPet(petModel, images);
       return Right(petId);
     } on ServerException {
       return Left(ServerFailure());
@@ -124,7 +122,7 @@ class PetsRepositoryImpl implements PetsRepository {
 
     try {
       final petModel = PetModel.fromEntity(pet);
-      await firebasePetsService.updatePet(petModel);
+      await firebasePetService.updatePet(petModel);
       return const Right(unit);
     } on ServerException {
       return Left(ServerFailure());
@@ -140,7 +138,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await firebasePetsService.deletePet(petId);
+      await firebasePetService.deletePet(petId);
       return const Right(unit);
     } on ServerException {
       return Left(ServerFailure());
@@ -160,7 +158,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await for (final pets in firebasePetsService.getPetsNearLocation(
+      await for (final pets in firebasePetService.getPetsNearLocation(
         location.latitude,
         location.longitude,
         radiusInKm,
@@ -195,7 +193,7 @@ class PetsRepositoryImpl implements PetsRepository {
     }
 
     try {
-      await for (final pets in firebasePetsService.searchPets(
+      await for (final pets in firebasePetService.searchPets(
         query: query,
         categories: categories,
         sizes: sizes,
