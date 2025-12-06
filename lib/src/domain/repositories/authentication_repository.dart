@@ -13,8 +13,10 @@ abstract class AuthenticationRepository {
     SignUpEntity signUpData,
   );
   Future<Either<Failure, UserCredential>> signInWithGoogle();
-  Future<Either<Failure, Unit>> verifyEmail();
-  Future<Either<Failure, Unit>> checkEmailVerification();
+  Future<Either<Failure, Unit>> sendEmailVerification();
+  Future<Either<Failure, bool>> checkEmailVerification();
+  Future<Either<Failure, Unit>> saveUserDataToFirestore();
+  Future<Either<Failure, bool>> isRegistrationComplete();
   Future<Either<Failure, Unit>> resetPassword(
     PasswordResetEntity passwordResetData,
   );

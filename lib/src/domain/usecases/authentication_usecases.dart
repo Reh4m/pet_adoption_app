@@ -36,13 +36,13 @@ class SignInWithGoogleUseCase {
   }
 }
 
-class VerifyEmailUseCase {
+class SendEmailVerificationUseCase {
   final AuthenticationRepository repository;
 
-  VerifyEmailUseCase(this.repository);
+  SendEmailVerificationUseCase(this.repository);
 
   Future<Either<Failure, Unit>> call() async {
-    return await repository.verifyEmail();
+    return await repository.sendEmailVerification();
   }
 }
 
@@ -51,8 +51,28 @@ class CheckEmailVerificationUseCase {
 
   CheckEmailVerificationUseCase(this.repository);
 
-  Future<Either<Failure, Unit>> call() async {
+  Future<Either<Failure, bool>> call() async {
     return await repository.checkEmailVerification();
+  }
+}
+
+class SaveUserDataToFirestoreUseCase {
+  final AuthenticationRepository repository;
+
+  SaveUserDataToFirestoreUseCase(this.repository);
+
+  Future<Either<Failure, Unit>> call() async {
+    return await repository.saveUserDataToFirestore();
+  }
+}
+
+class IsRegistrationCompleteUseCase {
+  final AuthenticationRepository repository;
+
+  IsRegistrationCompleteUseCase(this.repository);
+
+  Future<Either<Failure, bool>> call() async {
+    return await repository.isRegistrationComplete();
   }
 }
 

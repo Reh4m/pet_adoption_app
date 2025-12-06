@@ -7,15 +7,15 @@ import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
 
 class FirebaseAuthenticationService {
+  final FirebaseAuth firebaseAuth;
+
+  FirebaseAuthenticationService({required this.firebaseAuth});
+
   Future<UserCredential> signInWithEmailAndPassword(
     SignInModel signInData,
   ) async {
     try {
-      final firebaseInstance = FirebaseAuth.instance;
-
-      await firebaseInstance.currentUser?.reload();
-
-      return await FirebaseAuth.instance.signInWithEmailAndPassword(
+      return await firebaseAuth.signInWithEmailAndPassword(
         email: signInData.email,
         password: signInData.password,
       );
@@ -36,16 +36,10 @@ class FirebaseAuthenticationService {
     SignUpModel signUpData,
   ) async {
     try {
-      final firebaseInstance = FirebaseAuth.instance;
-
-      await firebaseInstance.currentUser?.reload();
-
-      final result = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final result = await firebaseAuth.createUserWithEmailAndPassword(
         email: signUpData.email,
         password: signUpData.password,
       );
-
-      result.user?.sendEmailVerification();
 
       return result;
     } on FirebaseAuthException catch (e) {
@@ -60,9 +54,7 @@ class FirebaseAuthenticationService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    final firebaseInstance = FirebaseAuth.instance;
-
-    await firebaseInstance.currentUser?.reload();
+    await firebaseAuth.currentUser?.reload();
 
     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
@@ -79,7 +71,7 @@ class FirebaseAuthenticationService {
     );
 
     try {
-      return await firebaseInstance.signInWithCredential(credential);
+      return await firebaseAuth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'account-exists-with-different-credential') {
         throw ExistingEmailException();
@@ -95,34 +87,67 @@ class FirebaseAuthenticationService {
     }
   }
 
-  Future<Unit> verifyEmail() async {
-    final user = FirebaseAuth.instance.currentUser;
+  Future<Unit> sendEmailVerification() async {
+    try {
+      final user = firebaseAuth.currentUser;
 
-    if (user != null && !user.emailVerified) {
-      try {
-        await user.reload();
-        await user.sendEmailVerification();
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'too-many-requests') {
-          throw TooManyRequestsException();
-        } else {
-          throw ServerException();
-        }
-      } catch (e) {
+      if (user == null) {
+        throw UserNotFoundException();
+      }
+
+      await user.reload();
+      await user.sendEmailVerification();
+
+      return unit;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        throw TooManyRequestsException();
+      } else {
         throw ServerException();
       }
-    } else {
-      throw UserNotFoundException();
+    } catch (e) {
+      throw ServerException();
     }
+  }
 
-    return Future.value(unit);
+  Future<bool> isEmailVerified() async {
+    try {
+      final user = firebaseAuth.currentUser;
+
+      if (user == null) {
+        throw UserNotFoundException();
+      }
+
+      await user.reload();
+
+      return user.emailVerified;
+    } catch (e) {
+      if (e is UserNotFoundException) rethrow;
+      throw ServerException();
+    }
+  }
+
+  Future<bool> isRegistrationComplete() async {
+    try {
+      final User? user = firebaseAuth.currentUser;
+
+      if (user == null) {
+        throw UserNotFoundException();
+      }
+
+      final hasName = user.displayName != null && user.displayName!.isNotEmpty;
+      final hasEmail = user.email != null && user.email!.isNotEmpty;
+
+      return hasName && hasEmail;
+    } catch (e) {
+      if (e is UserNotFoundException) rethrow;
+      throw ServerException();
+    }
   }
 
   Future<Unit> resetPassword(PasswordResetModel passwordResetData) async {
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: passwordResetData.email,
-      );
+      await firebaseAuth.sendPasswordResetEmail(email: passwordResetData.email);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
         throw UserNotFoundException();

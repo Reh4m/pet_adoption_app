@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -21,7 +22,6 @@ import 'package:pet_adoption_app/src/domain/repositories/pets_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
-import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
@@ -35,6 +35,7 @@ Future<void> init() async {
   sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
 
   // Firebase instances
+  sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
   sl.registerLazySingleton<FirebaseStorage>(() => FirebaseStorage.instance);
 
@@ -47,7 +48,7 @@ Future<void> init() async {
   /* Data Sources */
   // Firebase Authentication
   sl.registerLazySingleton<FirebaseAuthenticationService>(
-    () => FirebaseAuthenticationService(),
+    () => FirebaseAuthenticationService(firebaseAuth: sl<FirebaseAuth>()),
   );
 
   // Firebase Pets Service
@@ -64,10 +65,11 @@ Future<void> init() async {
   );
 
   // Firebase Users Service
-  sl.registerLazySingleton<FirebaseUsersService>(
-    () => FirebaseUsersService(
+  sl.registerLazySingleton<FirebaseUserService>(
+    () => FirebaseUserService(
+      firebaseAuth: sl<FirebaseAuth>(),
       firestore: sl<FirebaseFirestore>(),
-      storage: sl<FirebaseStorage>(),
+      storageService: sl<FirebaseStorageService>(),
     ),
   );
 
@@ -85,6 +87,8 @@ Future<void> init() async {
   // Authentication Repository
   sl.registerLazySingleton<AuthenticationRepository>(
     () => AuthenticationRepositoryImpl(
+      firebaseAuth: sl<FirebaseAuth>(),
+      firebaseUserService: sl<FirebaseUserService>(),
       firebaseAuthentication: sl<FirebaseAuthenticationService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
@@ -101,7 +105,7 @@ Future<void> init() async {
   // User Repository
   sl.registerLazySingleton<UserRepository>(
     () => UserRepositoryImpl(
-      firebaseUsersService: sl<FirebaseUsersService>(),
+      firebaseUsersService: sl<FirebaseUserService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -133,11 +137,17 @@ Future<void> init() async {
   sl.registerLazySingleton<SignInWithGoogleUseCase>(
     () => SignInWithGoogleUseCase(sl<AuthenticationRepository>()),
   );
-  sl.registerLazySingleton<VerifyEmailUseCase>(
-    () => VerifyEmailUseCase(sl<AuthenticationRepository>()),
-  );
   sl.registerLazySingleton<CheckEmailVerificationUseCase>(
     () => CheckEmailVerificationUseCase(sl<AuthenticationRepository>()),
+  );
+  sl.registerLazySingleton<SendEmailVerificationUseCase>(
+    () => SendEmailVerificationUseCase(sl<AuthenticationRepository>()),
+  );
+  sl.registerLazySingleton<SaveUserDataToFirestoreUseCase>(
+    () => SaveUserDataToFirestoreUseCase(sl<AuthenticationRepository>()),
+  );
+  sl.registerLazySingleton<IsRegistrationCompleteUseCase>(
+    () => IsRegistrationCompleteUseCase(sl<AuthenticationRepository>()),
   );
   sl.registerLazySingleton<ResetPasswordUseCase>(
     () => ResetPasswordUseCase(sl<AuthenticationRepository>()),
@@ -229,14 +239,6 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<CheckUserExistsUseCase>(
     () => CheckUserExistsUseCase(sl<UserRepository>()),
-  );
-
-  // User-Auth Integration Use Cases
-  sl.registerLazySingleton<CreateOrUpdateUserFromAuthUseCase>(
-    () => CreateOrUpdateUserFromAuthUseCase(sl<UserRepository>()),
-  );
-  sl.registerLazySingleton<SyncUserWithAuthUseCase>(
-    () => SyncUserWithAuthUseCase(sl<UserRepository>()),
   );
 
   // Adoption Requests Use Cases

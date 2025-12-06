@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:dartz/dartz.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 
@@ -49,9 +48,4 @@ abstract class UserRepository {
   Future<Either<Failure, Unit>> markUserAsVerified(String userId);
 
   Future<Either<Failure, bool>> checkUserExists(String userId);
-
-  // Métodos específicos de implementación
-  Future<Either<Failure, UserEntity>> createOrUpdateUserFromAuth(
-    User firebaseUser,
-  );
 }

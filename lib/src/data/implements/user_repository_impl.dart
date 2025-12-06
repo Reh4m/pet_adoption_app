@@ -9,7 +9,7 @@ import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 
 class UserRepositoryImpl implements UserRepository {
-  final FirebaseUsersService firebaseUsersService;
+  final FirebaseUserService firebaseUsersService;
   final NetworkInfo networkInfo;
 
   UserRepositoryImpl({
@@ -306,26 +306,6 @@ class UserRepositoryImpl implements UserRepository {
     try {
       final exists = await firebaseUsersService.checkUserExists(userId);
       return Right(exists);
-    } on ServerException {
-      return Left(ServerFailure());
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, UserEntity>> createOrUpdateUserFromAuth(
-    dynamic firebaseUser,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure());
-    }
-
-    try {
-      final user = await firebaseUsersService.createOrUpdateUserFromAuth(
-        firebaseUser,
-      );
-      return Right(user.toEntity());
     } on ServerException {
       return Left(ServerFailure());
     } catch (e) {

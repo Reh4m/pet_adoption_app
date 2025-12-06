@@ -6,18 +6,24 @@ import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/models/auth/password_reset_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_in_model.dart';
 import 'package:pet_adoption_app/src/data/models/auth/sign_up_model.dart';
+import 'package:pet_adoption_app/src/data/models/user_model.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/password_reset_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 
 class AuthenticationRepositoryImpl implements AuthenticationRepository {
+  final FirebaseAuth firebaseAuth;
   final FirebaseAuthenticationService firebaseAuthentication;
+  final FirebaseUserService firebaseUserService;
   final NetworkInfo networkInfo;
 
   AuthenticationRepositoryImpl({
+    required this.firebaseAuth,
     required this.firebaseAuthentication,
+    required this.firebaseUserService,
     required this.networkInfo,
   });
 
@@ -70,6 +76,8 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       final userCredential = await firebaseAuthentication
           .signUpWithEmailAndPassword(signUpModel);
 
+      await firebaseAuthentication.sendEmailVerification();
+
       return Right(userCredential);
     } on WeakPasswordException {
       return Left(WeakPasswordFailure());
@@ -104,13 +112,13 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<Either<Failure, Unit>> verifyEmail() async {
+  Future<Either<Failure, Unit>> sendEmailVerification() async {
     if (!await networkInfo.isConnected) {
-      return Future.value(Left(NetworkFailure()));
+      return Left(NetworkFailure());
     }
 
     try {
-      await firebaseAuthentication.verifyEmail();
+      await firebaseAuthentication.sendEmailVerification();
 
       return const Right(unit);
     } on TooManyRequestsException {
@@ -122,30 +130,95 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
     }
   }
 
-  Future<void> waitForEmailVerification() async {
-    final user = FirebaseAuth.instance.currentUser;
+  @override
+  Future<Either<Failure, bool>> checkEmailVerification() async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
 
-    if (user != null) {
-      await user.reload();
-      while (!user.emailVerified) {
-        await Future.delayed(const Duration(seconds: 5));
-        await user.reload();
+    try {
+      final user = firebaseAuth.currentUser;
+
+      if (user == null) {
+        return Left(UserNotFoundFailure());
       }
+
+      await user.reload();
+
+      final updatedUser = firebaseAuth.currentUser;
+
+      return Right(updatedUser?.emailVerified ?? false);
+    } catch (e) {
+      return Left(ServerFailure());
     }
   }
 
   @override
-  Future<Either<Failure, Unit>> checkEmailVerification() {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
+  Future<Either<Failure, Unit>> saveUserDataToFirestore() async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
 
-      if (user != null && user.emailVerified) {
-        return Future.value(const Right(unit));
-      } else {
-        return Future.value(Left(EmailVerificationFailure()));
+    try {
+      final currentUser = firebaseAuth.currentUser;
+
+      if (currentUser == null) {
+        return Left(UserNotFoundFailure());
       }
+
+      // Verificar que el email esté realmente verificado
+      await currentUser.reload();
+
+      if (!currentUser.emailVerified) {
+        return Left(EmailVerificationFailure());
+      }
+
+      // Verificar si el usuario ya existe en Firestore
+      final userExists = await firebaseUserService.checkUserExists(
+        currentUser.uid,
+      );
+
+      if (userExists) {
+        // Si ya existe, actualizar sus datos y marcar como verificado
+        final existingUser = await firebaseUserService.getUserById(
+          currentUser.uid,
+        );
+
+        final updatedUser = existingUser.copyWith(
+          name: currentUser.displayName ?? existingUser.name,
+          email: currentUser.email ?? existingUser.email,
+          phoneNumber: currentUser.phoneNumber,
+          photoUrl: currentUser.photoURL,
+          isVerified: true,
+          updatedAt: DateTime.now(),
+        );
+
+        await firebaseUserService.updateUser(updatedUser);
+      } else {
+        // Si no existe, crear nuevo usuario en Firestore
+        await firebaseUserService.createUser(
+          UserModel(
+            id: currentUser.uid,
+            name: currentUser.displayName ?? '',
+            email: currentUser.email ?? '',
+            phoneNumber: currentUser.phoneNumber,
+            photoUrl: currentUser.photoURL,
+            isVerified: true,
+            authProvider: firebaseUserService.getCurrentUserAuthProvider(),
+            createdAt: DateTime.now(),
+          ),
+        );
+      }
+
+      return const Right(unit);
+    } on UserNotFoundException {
+      return Left(UserNotFoundFailure());
+    } on InvalidUserDataException {
+      return Left(InvalidUserDataFailure());
+    } on ServerException {
+      return Left(ServerFailure());
     } catch (e) {
-      return Future.value(Left(ServerFailure()));
+      return Left(ServerFailure());
     }
   }
 
@@ -171,6 +244,58 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       return Future.value(Left(ServerFailure()));
     } catch (e) {
       return Future.value(Left(ServerFailure()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isRegistrationComplete() async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
+
+    try {
+      final currentUser = firebaseAuth.currentUser;
+
+      if (currentUser == null) {
+        return const Right(false);
+      }
+
+      await currentUser.reload();
+
+      final isEmailVerified = currentUser.emailVerified;
+
+      final hasName =
+          currentUser.displayName != null &&
+          currentUser.displayName!.isNotEmpty;
+      final hasEmail =
+          currentUser.email != null && currentUser.email!.isNotEmpty;
+
+      // Si no tiene todos los datos necesarios en Auth, no está completo
+      if (!isEmailVerified || !hasName || !hasEmail) {
+        return const Right(false);
+      }
+
+      final userExists = await firebaseUserService.checkUserExists(
+        currentUser.uid,
+      );
+
+      if (!userExists) {
+        return const Right(false);
+      }
+
+      // Verificar que los datos en Firestore estén completos
+      final user = await firebaseUserService.getUserById(currentUser.uid);
+
+      final hasCompleteData =
+          user.name.isNotEmpty && user.email.isNotEmpty && user.isVerified;
+
+      return Right(hasCompleteData);
+    } on UserNotFoundException {
+      return const Right(false);
+    } on ServerException {
+      return Left(ServerFailure());
+    } catch (e) {
+      return Left(ServerFailure());
     }
   }
 
