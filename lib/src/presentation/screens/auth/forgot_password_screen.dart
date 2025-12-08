@@ -7,7 +7,7 @@ import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/core/utils/form_validators.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/password_reset_entity.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/utils/toast_notification.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_text_field.dart';
@@ -241,11 +241,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Blob.random(
           size: 130,
           minGrowth: 10,
-          styles: BlobStyles(color: LightTheme.successLight),
+          styles: BlobStyles(color: ColorPalette.successLight),
           child: const Icon(
             Icons.lock_reset,
             size: 60,
-            color: LightTheme.success,
+            color: ColorPalette.success,
           ),
         ),
         const SizedBox(height: 20),

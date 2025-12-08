@@ -162,20 +162,20 @@ class ProfileHeader extends StatelessWidget {
           theme,
           icon: user.isVerified ? Icons.verified : Icons.warning,
           label: user.isVerified ? 'Verificado' : 'Sin verificar',
-          color: theme.colorScheme.surface,
+          color: theme.colorScheme.onPrimary,
         ),
         _buildBadge(
           theme,
           icon: user.isGoogleProvider ? Icons.g_mobiledata : Icons.email,
           label: user.isGoogleProvider ? 'Google' : 'Email',
-          color: theme.colorScheme.surface,
+          color: theme.colorScheme.onPrimary,
         ),
         if (user.isExperienced)
           _buildBadge(
             theme,
             icon: Icons.pets,
             label: 'Experimentado',
-            color: theme.colorScheme.surface,
+            color: theme.colorScheme.onPrimary,
           ),
       ],
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 
 class ActionButtons extends StatelessWidget {
@@ -152,12 +152,12 @@ class ActionButtons extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: LightTheme.info.withAlpha(20),
+            color: ColorPalette.info.withAlpha(20),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
             children: [
-              Icon(Icons.favorite, color: LightTheme.info, size: 24),
+              const Icon(Icons.favorite, color: ColorPalette.info, size: 24),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -166,7 +166,7 @@ class ActionButtons extends StatelessWidget {
                     Text(
                       '¡${pet.name} encontró un hogar!',
                       style: theme.textTheme.titleSmall?.copyWith(
-                        color: LightTheme.info,
+                        color: ColorPalette.info,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -174,7 +174,7 @@ class ActionButtons extends StatelessWidget {
                     Text(
                       'Esta mascota ya fue adoptada exitosamente',
                       style: theme.textTheme.bodySmall?.copyWith(
-                        color: LightTheme.info,
+                        color: ColorPalette.info,
                       ),
                     ),
                   ],

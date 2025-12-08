@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 
 class PetCharacteristics extends StatelessWidget {
   final PetEntity pet;
@@ -35,7 +35,7 @@ class PetCharacteristics extends StatelessWidget {
       theme,
       title: 'Información Médica',
       icon: Icons.medical_services,
-      iconColor: LightTheme.info,
+      iconColor: ColorPalette.info,
       children: [
         _buildCharacteristicRow(
           theme,
@@ -59,7 +59,7 @@ class PetCharacteristics extends StatelessWidget {
       theme,
       title: 'Comportamiento Social',
       icon: Icons.psychology,
-      iconColor: LightTheme.warning,
+      iconColor: ColorPalette.warning,
       children: [
         _buildCharacteristicRow(
           theme,
@@ -168,8 +168,8 @@ class PetCharacteristics extends StatelessWidget {
             decoration: BoxDecoration(
               color:
                   value
-                      ? LightTheme.success.withAlpha(20)
-                      : LightTheme.warning.withAlpha(20),
+                      ? ColorPalette.success.withAlpha(20)
+                      : ColorPalette.warning.withAlpha(20),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -178,13 +178,13 @@ class PetCharacteristics extends StatelessWidget {
                 Icon(
                   value ? Icons.check_circle : Icons.help_outline,
                   size: 16,
-                  color: value ? LightTheme.success : LightTheme.warning,
+                  color: value ? ColorPalette.success : ColorPalette.warning,
                 ),
                 const SizedBox(width: 5),
                 Text(
                   value ? 'Sí' : 'No confirmado',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: value ? LightTheme.success : LightTheme.warning,
+                    color: value ? ColorPalette.success : ColorPalette.warning,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -228,7 +228,7 @@ class PetCharacteristics extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            Icon(Icons.medical_information, size: 20),
+            const Icon(Icons.medical_information, size: 20),
             const SizedBox(width: 10),
             Text(
               'Condiciones médicas:',
@@ -250,13 +250,13 @@ class PetCharacteristics extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: LightTheme.info.withAlpha(20),
+                    color: ColorPalette.info.withAlpha(20),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     condition,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: LightTheme.info,
+                      color: ColorPalette.info,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

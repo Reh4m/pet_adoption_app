@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/widgets/request_action_buttons.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -205,14 +205,14 @@ class AdoptionRequestCard extends StatelessWidget {
   Color _getStatusColor() {
     switch (request.status) {
       case AdoptionRequestStatus.pending:
-        return LightTheme.warning;
+        return ColorPalette.warning;
       case AdoptionRequestStatus.accepted:
-        return LightTheme.success;
+        return ColorPalette.success;
       case AdoptionRequestStatus.rejected:
       case AdoptionRequestStatus.cancelled:
-        return LightTheme.error;
+        return ColorPalette.error;
       case AdoptionRequestStatus.completed:
-        return LightTheme.info;
+        return ColorPalette.info;
     }
   }
 

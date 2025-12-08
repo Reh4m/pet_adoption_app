@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/constants/theme_constants.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_registration_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -206,14 +206,14 @@ class StepPreview extends StatelessWidget {
       decoration: BoxDecoration(
         color:
             isPositive
-                ? LightTheme.success.withAlpha(20)
+                ? ColorPalette.success.withAlpha(20)
                 : theme.colorScheme.primary.withAlpha(20),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
         text,
         style: theme.textTheme.bodySmall?.copyWith(
-          color: isPositive ? LightTheme.success : theme.colorScheme.primary,
+          color: isPositive ? ColorPalette.success : theme.colorScheme.primary,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -280,7 +280,7 @@ class StepPreview extends StatelessWidget {
           Icon(
             value ? Icons.check_circle : Icons.cancel,
             size: 20,
-            color: value ? LightTheme.success : LightTheme.warning,
+            color: value ? ColorPalette.success : ColorPalette.warning,
           ),
         ],
       ),

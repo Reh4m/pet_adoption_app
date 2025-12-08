@@ -1,6 +1,6 @@
 import 'package:blobs/blobs.dart';
 import 'package:flutter/material.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 
 enum AlertDialogStatus { success, error, warning, info }
@@ -80,37 +80,45 @@ class CustomAlertDialog extends StatelessWidget {
         return Blob.random(
           size: 130,
           minGrowth: 8,
-          styles: BlobStyles(color: LightTheme.successLight),
-          child: Icon(
+          styles: BlobStyles(color: ColorPalette.successLight),
+          child: const Icon(
             Icons.check_circle_outline,
             size: 60,
-            color: LightTheme.success,
+            color: ColorPalette.success,
           ),
         );
       case AlertDialogStatus.error:
         return Blob.random(
           size: 130,
           minGrowth: 8,
-          styles: BlobStyles(color: LightTheme.errorLight),
-          child: Icon(Icons.error_outline, size: 60, color: LightTheme.error),
+          styles: BlobStyles(color: ColorPalette.errorLight),
+          child: const Icon(
+            Icons.error_outline,
+            size: 60,
+            color: ColorPalette.error,
+          ),
         );
       case AlertDialogStatus.warning:
         return Blob.random(
           size: 130,
           minGrowth: 8,
-          styles: BlobStyles(color: LightTheme.warningLight),
-          child: Icon(
+          styles: BlobStyles(color: ColorPalette.warningLight),
+          child: const Icon(
             Icons.warning_amber_outlined,
             size: 60,
-            color: LightTheme.warning,
+            color: ColorPalette.warning,
           ),
         );
       case AlertDialogStatus.info:
         return Blob.random(
           size: 130,
           minGrowth: 8,
-          styles: BlobStyles(color: LightTheme.infoLight),
-          child: Icon(Icons.info_outline, size: 60, color: LightTheme.info),
+          styles: BlobStyles(color: ColorPalette.infoLight),
+          child: const Icon(
+            Icons.info_outline,
+            size: 60,
+            color: ColorPalette.info,
+          ),
         );
     }
   }

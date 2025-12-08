@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/constants/theme_constants.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
 
 class PetCard extends StatelessWidget {
   final PetEntity pet;
@@ -46,7 +45,7 @@ class PetCard extends StatelessWidget {
                   child: Icon(
                     Icons.favorite_border,
                     size: 20,
-                    color: LightTheme.textSecondary,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -78,7 +77,7 @@ class PetCard extends StatelessWidget {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(Icons.location_on_outlined, size: 20),
+                            const Icon(Icons.location_on_outlined, size: 20),
                             const SizedBox(width: 5),
                             Text(
                               pet.location.city,

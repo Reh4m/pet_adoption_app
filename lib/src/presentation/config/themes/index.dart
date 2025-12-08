@@ -1,47 +1,115 @@
 import 'package:flutter/material.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/config/themes/dark_theme.dart';
 import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/text_theme.dart';
 
 class AppTheme {
-  static ThemeData get lightTheme => ThemeData(
+  static ThemeData get light => ThemeData(
     brightness: Brightness.light,
     primaryColor: LightTheme.primaryColor,
+    primaryColorDark: LightTheme.primaryColorDark,
     primaryColorLight: LightTheme.primaryColorLight,
     scaffoldBackgroundColor: LightTheme.backgroundColor,
-    colorScheme: ColorScheme.light(
+    cardColor: LightTheme.cardBackgroundColor,
+    disabledColor: ColorPalette.greyLighten3,
+    colorScheme: const ColorScheme.light(
       primary: LightTheme.primaryColor,
-      primaryContainer: LightTheme.primaryColorLight,
       onPrimary: LightTheme.onPrimaryColor,
+      primaryContainer: LightTheme.primaryColorLight,
+      onPrimaryContainer: LightTheme.primaryColor,
+      primaryFixed: LightTheme.primaryColorFixed,
+      onPrimaryFixed: LightTheme.onPrimaryColor,
+      primaryFixedDim: LightTheme.primaryColorDim,
+      onPrimaryFixedVariant: LightTheme.onPrimaryColor,
+      inversePrimary: LightTheme.inversePrimaryColor,
       secondary: LightTheme.secondaryColor,
-      secondaryContainer: LightTheme.secondaryColorLight,
       onSecondary: LightTheme.onSecondaryColor,
+      secondaryContainer: LightTheme.secondaryColorLight,
+      onSecondaryContainer: LightTheme.secondaryColor,
+      secondaryFixed: LightTheme.secondaryColorFixed,
+      onSecondaryFixed: LightTheme.onSecondaryColor,
+      secondaryFixedDim: LightTheme.secondaryColorDim,
+      onSecondaryFixedVariant: LightTheme.onSecondaryColor,
+      tertiary: LightTheme.tertiaryColor,
+      onTertiary: LightTheme.onTertiaryColor,
+      tertiaryContainer: LightTheme.tertiaryColorLight,
+      onTertiaryContainer: LightTheme.tertiaryColor,
+      tertiaryFixed: LightTheme.tertiaryColorFixed,
+      onTertiaryFixed: LightTheme.onTertiaryColor,
+      tertiaryFixedDim: LightTheme.tertiaryColorDim,
+      onTertiaryFixedVariant: LightTheme.onTertiaryColor,
       surface: LightTheme.cardBackgroundColor,
-      onSurface: LightTheme.textPrimary,
-      error: LightTheme.error,
+      onSurface: ColorPalette.greyDarken3,
+      outline: ColorPalette.greyLighten2,
+      outlineVariant: ColorPalette.greyLighten2,
+      shadow: ColorPalette.greyDarken4,
+      error: ColorPalette.error,
       onError: LightTheme.onPrimaryColor,
     ),
-    cardColor: LightTheme.cardBackgroundColor,
-    textTheme: TextTheme(),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: LightTheme.cardBackgroundColor,
+      foregroundColor: ColorPalette.greyDarken3,
+      centerTitle: true,
+    ),
+    tabBarTheme: const TabBarTheme(
+      labelColor: LightTheme.primaryColor,
+      indicatorColor: LightTheme.primaryColor,
+      unselectedLabelColor: LightTheme.secondaryTextColor,
+      indicatorSize: TabBarIndicatorSize.label,
+      dividerHeight: 0.5,
+      dividerColor: ColorPalette.greyLighten1,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: LightTheme.primaryColor,
+      foregroundColor: LightTheme.onPrimaryColor,
+    ),
+    textTheme: AppTextTheme.light,
   );
 
-  static ThemeData get darkTheme => ThemeData(
+  static ThemeData get dark => ThemeData(
     brightness: Brightness.dark,
     primaryColor: DarkTheme.primaryColor,
+    primaryColorDark: DarkTheme.primaryColorDark,
     primaryColorLight: DarkTheme.primaryColorLight,
     scaffoldBackgroundColor: DarkTheme.backgroundColor,
-    colorScheme: ColorScheme.dark(
+    cardColor: DarkTheme.cardBackgroundColor,
+    disabledColor: ColorPalette.greyDarken3,
+    colorScheme: const ColorScheme.dark(
       primary: DarkTheme.primaryColor,
       primaryContainer: DarkTheme.primaryColorLight,
       onPrimary: DarkTheme.onPrimaryColor,
       secondary: DarkTheme.secondaryColor,
       secondaryContainer: DarkTheme.secondaryColorLight,
       onSecondary: DarkTheme.onSecondaryColor,
+      tertiary: DarkTheme.tertiaryColor,
+      tertiaryContainer: DarkTheme.tertiaryColorLight,
+      onTertiary: DarkTheme.onTertiaryColor,
       surface: DarkTheme.cardBackgroundColor,
-      onSurface: DarkTheme.textPrimary,
-      error: DarkTheme.error,
+      onSurface: ColorPalette.greyLighten4,
+      outline: ColorPalette.greyDarken3,
+      outlineVariant: ColorPalette.greyDarken2,
+      shadow: ColorPalette.greyDarken1,
+      error: ColorPalette.error,
       onError: DarkTheme.onPrimaryColor,
     ),
-    cardColor: DarkTheme.cardBackgroundColor,
-    textTheme: TextTheme(),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: DarkTheme.cardBackgroundColor,
+      foregroundColor: ColorPalette.greyLighten4,
+      centerTitle: true,
+    ),
+    tabBarTheme: const TabBarTheme(
+      labelColor: DarkTheme.primaryColor,
+      indicatorColor: DarkTheme.primaryColor,
+      unselectedLabelColor: DarkTheme.secondaryTextColor,
+      indicatorSize: TabBarIndicatorSize.label,
+      dividerHeight: 0.5,
+      dividerColor: ColorPalette.greyDarken3,
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: LightTheme.primaryColor,
+      foregroundColor: LightTheme.onPrimaryColor,
+    ),
+    textTheme: AppTextTheme.dark,
   );
 }

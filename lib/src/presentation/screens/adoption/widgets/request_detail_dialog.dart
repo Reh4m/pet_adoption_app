@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -236,13 +236,17 @@ class RequestDetailDialog extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.cancel_outlined, size: 20, color: LightTheme.error),
+            const Icon(
+              Icons.cancel_outlined,
+              size: 20,
+              color: ColorPalette.error,
+            ),
             const SizedBox(width: 10),
             Text(
               'Motivo del rechazo',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: LightTheme.error,
+                color: ColorPalette.error,
               ),
             ),
           ],
@@ -252,7 +256,7 @@ class RequestDetailDialog extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: LightTheme.error.withAlpha(20),
+            color: ColorPalette.error.withAlpha(20),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -260,7 +264,7 @@ class RequestDetailDialog extends StatelessWidget {
                 'No se proporcionó un motivo de rechazo.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.5,
-              color: LightTheme.error,
+              color: ColorPalette.error,
             ),
           ),
         ),
@@ -274,13 +278,13 @@ class RequestDetailDialog extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(Icons.note_outlined, size: 20, color: LightTheme.info),
+            const Icon(Icons.note_outlined, size: 20, color: ColorPalette.info),
             const SizedBox(width: 10),
             Text(
               'Notas adicionales',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: LightTheme.info,
+                color: ColorPalette.info,
               ),
             ),
           ],
@@ -290,14 +294,14 @@ class RequestDetailDialog extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: LightTheme.info.withAlpha(20),
+            color: ColorPalette.info.withAlpha(20),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             request.notes ?? 'No hay notas adicionales.',
             style: theme.textTheme.bodyMedium?.copyWith(
               height: 1.5,
-              color: LightTheme.info,
+              color: ColorPalette.info,
             ),
           ),
         ),
@@ -326,7 +330,7 @@ class RequestDetailDialog extends StatelessWidget {
           theme,
           'Solicitud enviada',
           timeago.format(request.createdAt, locale: 'es'),
-          LightTheme.info,
+          ColorPalette.info,
           Icons.send,
           true,
         ),
@@ -335,7 +339,7 @@ class RequestDetailDialog extends StatelessWidget {
             theme,
             request.isAccepted ? 'Solicitud aceptada' : 'Solicitud rechazada',
             timeago.format(request.responseDate!, locale: 'es'),
-            request.isAccepted ? LightTheme.success : LightTheme.error,
+            request.isAccepted ? ColorPalette.success : ColorPalette.error,
             request.isAccepted ? Icons.check_circle : Icons.cancel,
             true,
           ),
@@ -445,14 +449,14 @@ class RequestDetailDialog extends StatelessWidget {
   Color _getStatusColor() {
     switch (request.status) {
       case AdoptionRequestStatus.pending:
-        return LightTheme.warning;
+        return ColorPalette.warning;
       case AdoptionRequestStatus.accepted:
-        return LightTheme.success;
+        return ColorPalette.success;
       case AdoptionRequestStatus.rejected:
       case AdoptionRequestStatus.cancelled:
-        return LightTheme.error;
+        return ColorPalette.error;
       case AdoptionRequestStatus.completed:
-        return LightTheme.info;
+        return ColorPalette.info;
     }
   }
 

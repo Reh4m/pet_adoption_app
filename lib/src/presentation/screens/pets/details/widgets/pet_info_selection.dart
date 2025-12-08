@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/constants/theme_constants.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 
 class PetInfoSection extends StatelessWidget {
   final PetEntity pet;
@@ -54,7 +54,7 @@ class PetInfoSection extends StatelessWidget {
 
     switch (pet.status) {
       case PetStatus.available:
-        statusColor = LightTheme.success;
+        statusColor = ColorPalette.success;
         statusText = 'Disponible';
         statusIcon = Icons.check_circle;
         break;

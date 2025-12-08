@@ -4,24 +4,31 @@ class DarkTheme {
   static const Color backgroundColor = Color(0xFF121212);
   static const Color cardBackgroundColor = Color(0xFF1E1E1E);
 
-  static const Color primaryColor = Color(0xFF1D3557);
-  static const Color primaryColorLight = Color(0xFF457B9D);
+  static const Color primaryColor = Color(0xFFEC5766);
+  static const Color primaryColorDark = Color(0xFFA4133C);
+  static const Color primaryColorLight = Color(0xFFFFF0F3);
   static const Color onPrimaryColor = Color(0xFFFFFFFF);
+  static const Color primaryColorFixed = Color(0xFFB91C1C);
+  static const Color primaryColorDim = Color(0xFF9F1239);
+  static const Color inversePrimaryColor = Color(0xFFB91C1C);
 
-  static const Color secondaryColor = Color(0xFF007AAD);
-  static const Color secondaryColorLight = Color(0xFFA8DADC);
-  static const Color onSecondaryColor = Color(0xFFF1FAEE);
+  static const Color secondaryColor = Color(0xFF6B8EFE);
+  static const Color secondaryColorDark = Color(0xFF1E3A8A);
+  static const Color secondaryColorLight = Color(0xFFCAF0F8);
+  static const Color onSecondaryColor = Color(0xFFFFFFFF);
+  static const Color secondaryColorFixed = Color(0xFF1E40AF);
+  static const Color secondaryColorDim = Color(0xFF1E3A8A);
 
-  static const Color textPrimary = Color(0xFFE0E0E0);
-  static const Color textPrimaryLight = Color(0xFFB0B0B0);
-  static const Color textSecondary = Color(0xFFCCCCCC);
+  static const Color tertiaryColor = Color(0xFFFFCB77);
+  static const Color tertiaryColorDark = Color(0xFFB45309);
+  static const Color tertiaryColorLight = Color(0xFFFFFAE5);
+  static const Color onTertiaryColor = Color(0xFFFFFFFF);
+  static const Color tertiaryColorFixed = Color(0xFFB45309);
+  static const Color tertiaryColorDim = Color(0xFF92400E);
 
-  static const Color greyDarken1 = Color(0xFF2C2C2C);
-  static const Color greyDarken2 = Color(0xFF3A3A3A);
-  static const Color greyDarken3 = Color(0xFF505050);
-
-  static const Color success = Color(0xFF5BBA6F);
-  static const Color warning = Color(0xFFFFA726);
-  static const Color error = Color(0xFFEF5350);
-  static const Color info = Color(0xFF5AC8FA);
+  static const Color titleTextColor = Color(0xFFF9FAFB);
+  static const Color subtitleTextColor = Color(0xFFE5E7EB);
+  static const Color primaryTextColor = Color(0xFFD1D5DB);
+  static const Color secondaryTextColor = Color(0xFF9CA3AF);
+  static const Color disabledTextColor = Color(0xFF6B7280);
 }

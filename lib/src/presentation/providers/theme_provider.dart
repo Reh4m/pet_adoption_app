@@ -12,8 +12,8 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   ThemeMode get currentThemeMode => _themeMode;
-  ThemeData get lightTheme => AppTheme.lightTheme;
-  ThemeData get darkTheme => AppTheme.darkTheme;
+  ThemeData get lightTheme => AppTheme.light;
+  ThemeData get darkTheme => AppTheme.dark;
 
   Future<void> _loadAppTheme() async {
     // Load current theme mode

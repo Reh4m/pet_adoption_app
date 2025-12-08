@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pet_adoption_app/src/presentation/config/themes/light_theme.dart';
+import 'package:pet_adoption_app/src/presentation/config/themes/color_palette.dart';
 import 'package:toastification/toastification.dart';
 
 enum ToastNotificationType { success, error, info, warning }
@@ -11,6 +11,8 @@ class ToastNotification {
     required String description,
     ToastNotificationType type = ToastNotificationType.success,
   }) {
+    final theme = Theme.of(context);
+
     toastification.show(
       context: context,
       type: _mapToToastificationType(type),
@@ -19,7 +21,7 @@ class ToastNotification {
       title: Text(
         title,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onPrimary,
+          color: theme.colorScheme.onPrimary,
           fontSize: 16.0,
           fontWeight: FontWeight.w600,
         ),
@@ -27,7 +29,7 @@ class ToastNotification {
       description: Text(
         description,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onPrimary,
+          color: theme.colorScheme.onPrimary,
           fontSize: 14.0,
           fontWeight: FontWeight.w400,
         ),
@@ -39,8 +41,8 @@ class ToastNotification {
         return FadeTransition(opacity: animation, child: child);
       },
       icon: _buildNotificationIcon(type),
-      backgroundColor: Theme.of(context).colorScheme.onSurface,
-      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+      backgroundColor: ColorPalette.greyDarken3,
+      foregroundColor: theme.colorScheme.onPrimary,
       padding: const EdgeInsets.all(15.0),
       margin: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
       borderRadius: BorderRadius.circular(8.0),
@@ -70,26 +72,26 @@ class ToastNotification {
       case ToastNotificationType.success:
         return _notificationIcon(
           icon: Icons.task_alt_outlined,
-          color: LightTheme.success,
-          backgroundColor: LightTheme.successLight.withAlpha(50),
+          color: ColorPalette.success,
+          backgroundColor: ColorPalette.successLight.withAlpha(50),
         );
       case ToastNotificationType.error:
         return _notificationIcon(
           icon: Icons.error_outline_outlined,
-          color: LightTheme.error,
-          backgroundColor: LightTheme.errorLight.withAlpha(50),
+          color: ColorPalette.error,
+          backgroundColor: ColorPalette.errorLight.withAlpha(50),
         );
       case ToastNotificationType.info:
         return _notificationIcon(
           icon: Icons.info_outline,
-          color: LightTheme.info,
-          backgroundColor: LightTheme.infoLight.withAlpha(50),
+          color: ColorPalette.info,
+          backgroundColor: ColorPalette.infoLight.withAlpha(50),
         );
       case ToastNotificationType.warning:
         return _notificationIcon(
           icon: Icons.warning_amber_rounded,
-          color: LightTheme.warning,
-          backgroundColor: LightTheme.warningLight.withAlpha(50),
+          color: ColorPalette.warning,
+          backgroundColor: ColorPalette.warningLight.withAlpha(50),
         );
     }
   }
