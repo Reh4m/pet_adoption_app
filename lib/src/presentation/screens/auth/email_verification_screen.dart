@@ -91,7 +91,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (isVerified) {
       _verificationTimer?.cancel();
 
-      final created = await provider.createUserAfterEmailVerification();
+      final created = await provider.saveUserDataToFirestore();
 
       if (!mounted) return;
 
@@ -115,7 +115,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (!mounted) return;
 
     if (isVerified) {
-      final created = await provider.createUserAfterEmailVerification();
+      final created = await provider.saveUserDataToFirestore();
 
       if (created) {
         _showSuccessDialog();

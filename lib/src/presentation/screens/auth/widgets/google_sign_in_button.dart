@@ -16,8 +16,6 @@ class GoogleSignInButton extends StatelessWidget {
 
     switch (authProvider.state) {
       case AuthState.success:
-        await authProvider.createUserAfterEmailVerification();
-
         context.go('/home');
         break;
       case AuthState.error:

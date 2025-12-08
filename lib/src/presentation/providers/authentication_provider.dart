@@ -83,7 +83,13 @@ class AuthenticationProvider extends ChangeNotifier {
       (userCredential) async {
         _currentUser = userCredential.user;
 
-        _setState(AuthState.success);
+        final result = await saveUserDataToFirestore();
+
+        if (!result) {
+          _setState(AuthState.error);
+        } else {
+          _setState(AuthState.success);
+        }
       },
     );
   }
@@ -120,7 +126,7 @@ class AuthenticationProvider extends ChangeNotifier {
     );
   }
 
-  Future<bool> createUserAfterEmailVerification() async {
+  Future<bool> saveUserDataToFirestore() async {
     _setState(AuthState.loading);
 
     final result = await _saveUserDataToFirestoreUseCase();
