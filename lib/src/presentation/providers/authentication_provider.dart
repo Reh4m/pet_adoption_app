@@ -65,8 +65,8 @@ class AuthenticationProvider extends ChangeNotifier {
 
     await result.fold(
       (failure) async => _setError(_mapFailureToMessage(failure)),
-      (userCredential) async {
-        _currentUser = userCredential.user;
+      (newUser) async {
+        _currentUser = newUser;
 
         _setState(AuthState.success);
       },

@@ -54,7 +54,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
   }
 
   @override
-  Future<Either<Failure, UserCredential>> signUpWithEmailAndPassword(
+  Future<Either<Failure, User>> signUpWithEmailAndPassword(
     SignUpEntity signUpData,
   ) async {
     if (!await networkInfo.isConnected) {
@@ -73,12 +73,21 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
         confirmPassword: signUpData.confirmPassword,
       );
 
+      // 1. Crear el usuario en Firebase Authentication
       final userCredential = await firebaseAuthentication
           .signUpWithEmailAndPassword(signUpModel);
 
+      print('1. before update::: $userCredential');
+
+      // 2. Actualizar el perfil del usuario con el nombre proporcionado
+      final updatedUser = await firebaseUserService.updateFirebaseAuthUser(
+        displayName: signUpData.name,
+      );
+
+      // 3. Enviar correo de verificación
       await firebaseAuthentication.sendEmailVerification();
 
-      return Right(userCredential);
+      return Right(updatedUser);
     } on WeakPasswordException {
       return Left(WeakPasswordFailure());
     } on ExistingEmailException {
@@ -193,7 +202,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
           updatedAt: DateTime.now(),
         );
 
-        await firebaseUserService.updateUser(updatedUser);
+        await firebaseUserService.updateFirestoreUser(updatedUser);
       } else {
         // Si no existe, crear nuevo usuario en Firestore
         await firebaseUserService.createUser(

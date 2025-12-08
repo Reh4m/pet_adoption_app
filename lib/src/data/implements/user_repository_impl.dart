@@ -100,7 +100,18 @@ class UserRepositoryImpl implements UserRepository {
 
     try {
       final userModel = UserModel.fromEntity(user);
-      final updatedUser = await firebaseUsersService.updateUser(userModel);
+
+      // 1. Actualizar datos del usuario en Firestore
+      final updatedUser = await firebaseUsersService.updateFirestoreUser(
+        userModel,
+      );
+
+      // 2. Actualizar perfil en Firebase Auth
+      await firebaseUsersService.updateFirebaseAuthUser(
+        displayName: user.name,
+        photoUrl: user.photoUrl,
+      );
+
       return Right(updatedUser.toEntity());
     } on UserNotFoundException {
       return Left(UserNotFoundFailure());

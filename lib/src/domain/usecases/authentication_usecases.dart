@@ -21,7 +21,7 @@ class SignUpUseCase {
 
   SignUpUseCase(this.repository);
 
-  Future<Either<Failure, UserCredential>> call(SignUpEntity signUpData) async {
+  Future<Either<Failure, User>> call(SignUpEntity signUpData) async {
     return await repository.signUpWithEmailAndPassword(signUpData);
   }
 }

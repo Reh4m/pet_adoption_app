@@ -9,7 +9,7 @@ abstract class AuthenticationRepository {
   Future<Either<Failure, UserCredential>> signInWithEmailAndPassword(
     SignInEntity signInData,
   );
-  Future<Either<Failure, UserCredential>> signUpWithEmailAndPassword(
+  Future<Either<Failure, User>> signUpWithEmailAndPassword(
     SignUpEntity signUpData,
   );
   Future<Either<Failure, UserCredential>> signInWithGoogle();

@@ -97,7 +97,7 @@ class FirebaseUserService {
     }
   }
 
-  Future<UserModel> updateUser(UserModel user) async {
+  Future<UserModel> updateFirestoreUser(UserModel user) async {
     try {
       final updatedUser = user.copyWith(updatedAt: DateTime.now());
 
@@ -115,7 +115,7 @@ class FirebaseUserService {
     }
   }
 
-  Future<void> updateUserProfile({
+  Future<User> updateFirebaseAuthUser({
     String? displayName,
     String? photoUrl,
   }) async {
@@ -135,6 +135,8 @@ class FirebaseUserService {
       }
 
       await currentUser.reload();
+
+      return currentUser;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'requires-recent-login') {
         throw UnauthorizedUserOperationException();
