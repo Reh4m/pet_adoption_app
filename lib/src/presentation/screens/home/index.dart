@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/data/pet_categories.dart';
-import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/home/widgets/pet_card.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
@@ -66,6 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: SafeArea(
@@ -73,24 +72,19 @@ class _HomeScreenState extends State<HomeScreen> {
           onRefresh: _handleRefresh,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildHeader(theme),
-                  const SizedBox(height: 20),
-                  _buildSearchButton(),
-                  const SizedBox(height: 20),
-                  _buildCategories(theme),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    child: _buildPetContent(),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                _buildHeader(theme),
+                const SizedBox(height: 20),
+                _buildSearchButton(theme),
+                const SizedBox(height: 20),
+                _buildCategories(theme),
+                const SizedBox(height: 20),
+                SizedBox(height: size.height * 0.5, child: _buildPetContent()),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -107,84 +101,52 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHeader(ThemeData theme) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ubicación', style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 5),
-            Text(
-              'Celaya, Guanajuato',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Ubicación', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 5),
+          Text(
+            'Celaya, Guanajuato',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
-        IconButton(
-          icon: Consumer<ChatProvider>(
-            builder: (context, chatProvider, child) {
-              final unreadCount = chatProvider.totalUnreadCount;
-
-              return Stack(
-                children: [
-                  const Icon(Icons.chat_bubble_outline, size: 25),
-                  if (unreadCount > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.secondary,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          unreadCount > 9 ? '9+' : '$unreadCount',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
           ),
-          onPressed: () => context.push('/chats'),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildSearchButton() {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Row(
-          children: [
-            Icon(Icons.search, color: Colors.grey[500], size: 20),
-            const SizedBox(width: 12),
-            Text(
-              'Buscar mascotas...',
-              style: TextStyle(color: Colors.grey[500], fontSize: 16),
-            ),
-          ],
+  Widget _buildSearchButton(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(15),
+        child: Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.search,
+                color: theme.colorScheme.onSurface.withAlpha(100),
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Buscar mascotas...',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withAlpha(100),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -193,27 +155,30 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCategories(ThemeData theme) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Categorías',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Categorías',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            CustomButton(
-              onPressed: () {},
-              text: 'Ver Todas',
-              variant: ButtonVariant.text,
-              icon: Icon(
-                Icons.arrow_forward,
-                size: 16,
-                color: theme.colorScheme.primary,
+              CustomButton(
+                onPressed: () {},
+                text: 'Ver Todas',
+                variant: ButtonVariant.text,
+                icon: Icon(
+                  Icons.arrow_forward,
+                  size: 16,
+                  color: theme.colorScheme.primary,
+                ),
+                iconPosition: ButtonIconPosition.right,
               ),
-              iconPosition: ButtonIconPosition.right,
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 10),
         SizedBox(
@@ -221,6 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             separatorBuilder: (context, index) => const SizedBox(width: 15),
             itemBuilder: (context, index) {
               final category = categories[index];
@@ -353,26 +319,22 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
 
-        return _buildPetCarousel(pets);
+        return CarouselSlider(
+          carouselController: carouselController,
+          items: pets.map((pet) => PetCard(pet: pet)).toList(),
+          options: CarouselOptions(
+            height: double.infinity,
+            enlargeCenterPage: true,
+            enableInfiniteScroll: pets.length > 1,
+            onPageChanged: (index, reason) {
+              setState(() {
+                HapticFeedback.selectionClick();
+                currentPetIndex = index % pets.length;
+              });
+            },
+          ),
+        );
       },
-    );
-  }
-
-  Widget _buildPetCarousel(List<PetEntity> pets) {
-    return CarouselSlider(
-      carouselController: carouselController,
-      items: pets.map((pet) => PetCard(pet: pet)).toList(),
-      options: CarouselOptions(
-        height: double.infinity,
-        enlargeCenterPage: true,
-        enableInfiniteScroll: pets.length > 1,
-        onPageChanged: (index, reason) {
-          setState(() {
-            HapticFeedback.selectionClick();
-            currentPetIndex = index % pets.length;
-          });
-        },
-      ),
     );
   }
 }

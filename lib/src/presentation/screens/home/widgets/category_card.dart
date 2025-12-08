@@ -20,7 +20,7 @@ class CategoryCard extends StatelessWidget {
     return Column(
       children: [
         InkWell(
-          onTap: () => onTap,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(20),
           child: Container(
             width: 70,

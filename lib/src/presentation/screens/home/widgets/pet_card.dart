@@ -13,9 +13,7 @@ class PetCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () {
-        context.push('/pets/${pet.id}');
-      },
+      onTap: () => context.push('/pets/${pet.id}'),
       borderRadius: BorderRadius.circular(20),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
