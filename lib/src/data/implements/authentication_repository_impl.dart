@@ -74,10 +74,7 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
       );
 
       // 1. Crear el usuario en Firebase Authentication
-      final userCredential = await firebaseAuthentication
-          .signUpWithEmailAndPassword(signUpModel);
-
-      print('1. before update::: $userCredential');
+      await firebaseAuthentication.signUpWithEmailAndPassword(signUpModel);
 
       // 2. Actualizar el perfil del usuario con el nombre proporcionado
       final updatedUser = await firebaseUserService.updateFirebaseAuthUser(
