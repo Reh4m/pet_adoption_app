@@ -184,41 +184,22 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
         currentUser.uid,
       );
 
-      if (userExists) {
-        // Si ya existe, actualizar sus datos y marcar como verificado
-        final existingUser = await firebaseUserService.getUserById(
-          currentUser.uid,
-        );
+      // Si ya existe, no hacer nada
+      if (userExists) return const Right(unit);
 
-        final updatedUser = existingUser.copyWith(
-          name: currentUser.displayName ?? existingUser.name,
-          email: currentUser.email ?? existingUser.email,
+      // Si no existe, crear nuevo usuario en Firestore
+      await firebaseUserService.createUser(
+        UserModel(
+          id: currentUser.uid,
+          name: currentUser.displayName ?? '',
+          email: currentUser.email ?? '',
           phoneNumber: currentUser.phoneNumber,
           photoUrl: currentUser.photoURL,
           isVerified: true,
-          updatedAt: DateTime.now(),
-        );
-
-        await firebaseUserService.updateFirestoreUser(updatedUser);
-        await firebaseUserService.updateFirebaseAuthUser(
-          displayName: updatedUser.name,
-          photoUrl: updatedUser.photoUrl,
-        );
-      } else {
-        // Si no existe, crear nuevo usuario en Firestore
-        await firebaseUserService.createUser(
-          UserModel(
-            id: currentUser.uid,
-            name: currentUser.displayName ?? '',
-            email: currentUser.email ?? '',
-            phoneNumber: currentUser.phoneNumber,
-            photoUrl: currentUser.photoURL,
-            isVerified: true,
-            authProvider: firebaseUserService.getCurrentUserAuthProvider(),
-            createdAt: DateTime.now(),
-          ),
-        );
-      }
+          authProvider: firebaseUserService.getCurrentUserAuthProvider(),
+          createdAt: DateTime.now(),
+        ),
+      );
 
       return const Right(unit);
     } on UserNotFoundException {
