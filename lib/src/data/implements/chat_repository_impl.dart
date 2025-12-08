@@ -93,14 +93,18 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Stream<Either<Failure, List<ChatEntity>>> getUserChats(String userId) async* {
+  Stream<Either<Failure, List<ChatEntity>>> getUserChatsStream(
+    String userId,
+  ) async* {
     if (!await networkInfo.isConnected) {
       yield Left(NetworkFailure());
       return;
     }
 
     try {
-      await for (final chats in firebaseChatService.getUserChats(userId)) {
+      await for (final chats in firebaseChatService.getUserChatsStream(
+        userId,
+      )) {
         yield Right(chats.map((chat) => chat.toEntity()).toList());
       }
     } on ServerException {
@@ -194,7 +198,7 @@ class ChatRepositoryImpl implements ChatRepository {
   }
 
   @override
-  Stream<Either<Failure, List<MessageEntity>>> getChatMessages(
+  Stream<Either<Failure, List<MessageEntity>>> getChatMessagesStream(
     String chatId,
   ) async* {
     if (!await networkInfo.isConnected) {
@@ -203,7 +207,7 @@ class ChatRepositoryImpl implements ChatRepository {
     }
 
     try {
-      await for (final messages in firebaseChatService.getChatMessages(
+      await for (final messages in firebaseChatService.getChatMessagesStream(
         chatId,
       )) {
         yield Right(messages.map((message) => message.toEntity()).toList());
@@ -226,6 +230,25 @@ class ChatRepositoryImpl implements ChatRepository {
 
     try {
       await firebaseChatService.markMessageAsRead(messageId, userId);
+      return const Right(unit);
+    } on ServerException {
+      return Left(ServerFailure());
+    } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> markAllMessagesAsDelivered(
+    String chatId,
+    String userId,
+  ) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
+
+    try {
+      await firebaseChatService.markAllMessagesAsDelivered(chatId, userId);
       return const Right(unit);
     } on ServerException {
       return Left(ServerFailure());
@@ -278,26 +301,6 @@ class ChatRepositoryImpl implements ChatRepository {
     try {
       final count = await firebaseChatService.getUnreadMessagesCount(userId);
       return Right(count);
-    } on ServerException {
-      return Left(ServerFailure());
-    } catch (e) {
-      return Left(ServerFailure());
-    }
-  }
-
-  @override
-  Future<Either<Failure, Unit>> updateUnreadCount(
-    String chatId,
-    String userId,
-    int count,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure());
-    }
-
-    try {
-      await firebaseChatService.updateUnreadCount(chatId, userId, count);
-      return const Right(unit);
     } on ServerException {
       return Left(ServerFailure());
     } catch (e) {

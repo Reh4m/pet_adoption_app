@@ -138,7 +138,7 @@ class _MessageInputState extends State<MessageInput> {
             _hasText && !widget.isLoading
                 ? theme.colorScheme.primary
                 : theme.colorScheme.onSurface.withAlpha(50),
-        elevation: _hasText ? 2 : 0,
+        elevation: 0,
         child:
             widget.isLoading
                 ? SizedBox(

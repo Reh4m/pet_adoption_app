@@ -57,13 +57,13 @@ class GetChatByIdUseCase {
   }
 }
 
-class GetUserChatsUseCase {
+class GetUserChatsStreamUseCase {
   final ChatRepository repository;
 
-  GetUserChatsUseCase(this.repository);
+  GetUserChatsStreamUseCase(this.repository);
 
   Stream<Either<Failure, List<ChatEntity>>> call(String userId) {
-    return repository.getUserChats(userId);
+    return repository.getUserChatsStream(userId);
   }
 }
 
@@ -124,13 +124,13 @@ class SendMessageUseCase {
   }
 }
 
-class GetChatMessagesUseCase {
+class GetChatMessagesStreamUseCase {
   final ChatRepository repository;
 
-  GetChatMessagesUseCase(this.repository);
+  GetChatMessagesStreamUseCase(this.repository);
 
   Stream<Either<Failure, List<MessageEntity>>> call(String chatId) {
-    return repository.getChatMessages(chatId);
+    return repository.getChatMessagesStream(chatId);
   }
 }
 
@@ -141,6 +141,16 @@ class MarkMessageAsReadUseCase {
 
   Future<Either<Failure, Unit>> call(String messageId, String userId) async {
     return await repository.markMessageAsRead(messageId, userId);
+  }
+}
+
+class MarkAllMessagesAsDeliveredUseCase {
+  final ChatRepository repository;
+
+  MarkAllMessagesAsDeliveredUseCase(this.repository);
+
+  Future<Either<Failure, Unit>> call(String chatId, String userId) async {
+    return await repository.markAllMessagesAsDelivered(chatId, userId);
   }
 }
 
@@ -171,20 +181,6 @@ class GetUnreadMessagesCountUseCase {
 
   Future<Either<Failure, int>> call(String userId) async {
     return await repository.getUnreadMessagesCount(userId);
-  }
-}
-
-class UpdateUnreadCountUseCase {
-  final ChatRepository repository;
-
-  UpdateUnreadCountUseCase(this.repository);
-
-  Future<Either<Failure, Unit>> call(
-    String chatId,
-    String userId,
-    int count,
-  ) async {
-    return await repository.updateUnreadCount(chatId, userId, count);
   }
 }
 

@@ -1,29 +1,38 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart';
+import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/chat/message_entity.dart';
+import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
 enum ChatState { initial, loading, success, error }
 
 class ChatProvider extends ChangeNotifier {
+  final FirebaseAuth firebaseAuth = di.sl<FirebaseAuth>();
   final CreateOrGetChatUseCase _createOrGetChatUseCase =
       sl<CreateOrGetChatUseCase>();
-  final GetUserChatsUseCase _getUserChatsUseCase = sl<GetUserChatsUseCase>();
+  final GetUserChatsStreamUseCase _getUserChatsStreamUseCase =
+      sl<GetUserChatsStreamUseCase>();
   final GetChatByIdUseCase _getChatByIdUseCase = sl<GetChatByIdUseCase>();
   final SendMessageUseCase _sendMessageUseCase = sl<SendMessageUseCase>();
-  final GetChatMessagesUseCase _getChatMessagesUseCase =
-      sl<GetChatMessagesUseCase>();
+  final GetChatMessagesStreamUseCase _getChatMessagesStreamUseCase =
+      sl<GetChatMessagesStreamUseCase>();
   final MarkAllMessagesAsReadUseCase _markAllMessagesAsReadUseCase =
       sl<MarkAllMessagesAsReadUseCase>();
+  final MarkAllMessagesAsDeliveredUseCase _markAllMessagesAsDeliveredUseCase =
+      sl<MarkAllMessagesAsDeliveredUseCase>();
   final GetUnreadMessagesCountUseCase _getUnreadMessagesCountUseCase =
       sl<GetUnreadMessagesCountUseCase>();
   final ArchiveChatUseCase _archiveChatUseCase = sl<ArchiveChatUseCase>();
   final DeleteChatUseCase _deleteChatUseCase = sl<DeleteChatUseCase>();
   final SendSystemMessageUseCase _sendSystemMessageUseCase =
       sl<SendSystemMessageUseCase>();
+  final GetUserByIdUseCase _getUserByIdUseCase = sl<GetUserByIdUseCase>();
 
   ChatState _chatsState = ChatState.initial;
   ChatState _messagesState = ChatState.initial;
@@ -36,7 +45,8 @@ class ChatProvider extends ChangeNotifier {
   String? _operationError;
 
   List<ChatEntity> _userChats = [];
-  Map<String, List<MessageEntity>> _chatMessages = {};
+  final Map<String, UserEntity> _chatParticipants = {};
+  final Map<String, List<MessageEntity>> _chatMessages = {};
   ChatEntity? _currentChat;
   int _totalUnreadCount = 0;
 
@@ -54,6 +64,7 @@ class ChatProvider extends ChangeNotifier {
   String? get operationError => _operationError;
 
   List<ChatEntity> get userChats => List.from(_userChats);
+  Map<String, UserEntity> get chatParticipants => _chatParticipants;
   ChatEntity? get currentChat => _currentChat;
   int get totalUnreadCount => _totalUnreadCount;
 
@@ -111,15 +122,36 @@ class ChatProvider extends ChangeNotifier {
   void startUserChatsListener(String userId) {
     _setChatsState(ChatState.loading);
 
-    _userChatsSubscription = _getUserChatsUseCase(userId).listen((either) {
+    _userChatsSubscription = _getUserChatsStreamUseCase(userId).listen((
+      either,
+    ) {
       either.fold((failure) => _setChatsError(_mapFailureToMessage(failure)), (
         chats,
-      ) {
+      ) async {
         _userChats = chats;
+
         _calculateTotalUnreadCount(userId);
+
+        await _loadChatParticipants(chats);
+
+        for (final chat in chats) {
+          _markAllMessagesAsDelivered(chat.id);
+        }
+
         _setChatsState(ChatState.success);
       });
     }, onError: (error) => _setChatsError('Error de conexión: $error'));
+  }
+
+  Future<void> _loadChatParticipants(List<ChatEntity> chats) async {
+    for (final chat in chats) {
+      for (final userId in chat.participantIds) {
+        if (!_chatParticipants.containsKey(userId)) {
+          final result = await _getUserByIdUseCase(userId);
+          result.fold((_) => null, (user) => _chatParticipants[userId] = user);
+        }
+      }
+    }
   }
 
   void stopUserChatsListener() {
@@ -147,13 +179,16 @@ class ChatProvider extends ChangeNotifier {
 
     _setMessagesState(ChatState.loading);
 
-    _messageSubscriptions[chatId] = _getChatMessagesUseCase(chatId).listen((
-      either,
-    ) {
+    _messageSubscriptions[chatId] = _getChatMessagesStreamUseCase(
+      chatId,
+    ).listen((either) {
       either.fold(
         (failure) => _setMessagesError(_mapFailureToMessage(failure)),
-        (messages) {
+        (messages) async {
           _chatMessages[chatId] = messages;
+
+          await _markAllMessagesAsRead(chatId);
+
           _setMessagesState(ChatState.success);
         },
       );
@@ -208,13 +243,16 @@ class ChatProvider extends ChangeNotifier {
     );
   }
 
-  Future<bool> markAllMessagesAsRead(String chatId, String userId) async {
+  Future<void> _markAllMessagesAsRead(String chatId) async {
+    final userId = firebaseAuth.currentUser?.uid;
+
+    if (userId == null) return;
+
     final result = await _markAllMessagesAsReadUseCase(chatId, userId);
 
     return result.fold(
       (failure) {
         _setOperationError(_mapFailureToMessage(failure));
-        return false;
       },
       (_) {
         // Actualizar el estado local
@@ -232,9 +270,16 @@ class ChatProvider extends ChangeNotifier {
           _calculateTotalUnreadCount(userId);
           notifyListeners();
         }
-        return true;
       },
     );
+  }
+
+  Future<void> _markAllMessagesAsDelivered(String chatId) async {
+    final userId = firebaseAuth.currentUser?.uid;
+
+    if (userId == null) return;
+
+    await _markAllMessagesAsDeliveredUseCase(chatId, userId);
   }
 
   Future<void> loadUnreadMessagesCount(String userId) async {
@@ -330,6 +375,17 @@ class ChatProvider extends ChangeNotifier {
 
   List<ChatEntity> getChatsWithUnreadMessages(String userId) {
     return _userChats.where((chat) => chat.getUnreadCount(userId) > 0).toList();
+  }
+
+  UserEntity? getParticipantInfo(String userId) {
+    return _chatParticipants[userId];
+  }
+
+  String? getParticipantId(ChatEntity chat, String currentUserId) {
+    return chat.participantIds.firstWhere(
+      (id) => id != currentUserId,
+      orElse: () => '',
+    );
   }
 
   void setCurrentChat(ChatEntity? chat) {

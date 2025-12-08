@@ -15,34 +15,6 @@ class ChatListScreen extends StatefulWidget {
 }
 
 class _ChatListScreenState extends State<ChatListScreen> {
-  @override
-  void initState() {
-    super.initState();
-    _initializeChats();
-  }
-
-  void _initializeChats() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-      final chatProvider = context.read<ChatProvider>();
-
-      final currentUser = userProvider.currentUser;
-      if (currentUser != null) {
-        chatProvider.startUserChatsListener(currentUser.id);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<ChatProvider>().stopUserChatsListener();
-      }
-    });
-    super.dispose();
-  }
-
   Future<void> _handleRefresh() async {
     final userProvider = context.read<UserProvider>();
     final chatProvider = context.read<ChatProvider>();
@@ -234,37 +206,13 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return AppBar(
       backgroundColor: theme.colorScheme.primary,
       foregroundColor: theme.colorScheme.onPrimary,
-      title: Consumer<ChatProvider>(
-        builder: (context, chatProvider, child) {
-          final unreadCount = chatProvider.totalUnreadCount;
-
-          return Row(
-            children: [
-              const Text('Mensajes'),
-              if (unreadCount > 0) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.onPrimary,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    unreadCount > 99 ? '99+' : '$unreadCount',
-                    style: TextStyle(
-                      color: theme.colorScheme.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          );
-        },
+      centerTitle: true,
+      title: Text(
+        'Chats',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+          color: theme.colorScheme.onPrimary,
+        ),
       ),
       actions: [
         IconButton(

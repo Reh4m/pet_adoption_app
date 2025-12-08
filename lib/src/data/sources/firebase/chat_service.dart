@@ -95,7 +95,7 @@ class FirebaseChatService {
     }
   }
 
-  Stream<List<ChatModel>> getUserChats(String userId) {
+  Stream<List<ChatModel>> getUserChatsStream(String userId) {
     try {
       return firestore
           .collection(_chatsCollection)
@@ -206,6 +206,8 @@ class FirebaseChatService {
         if (participantId != senderId) {
           currentUnreadCounts[participantId] =
               (currentUnreadCounts[participantId] ?? 0) + 1;
+        } else {
+          currentUnreadCounts[participantId] = 0;
         }
       }
 
@@ -225,7 +227,7 @@ class FirebaseChatService {
     }
   }
 
-  Stream<List<MessageModel>> getChatMessages(String chatId) {
+  Stream<List<MessageModel>> getChatMessagesStream(String chatId) {
     try {
       return firestore
           .collection(_messagesCollection)
@@ -254,6 +256,32 @@ class FirebaseChatService {
     }
   }
 
+  Future<void> markAllMessagesAsDelivered(String chatId, String userId) async {
+    try {
+      final batch = firestore.batch();
+
+      // Marcar todos los mensajes como entregados
+      final messagesQuery =
+          await firestore
+              .collection(_messagesCollection)
+              .where('chatId', isEqualTo: chatId)
+              .where(
+                'senderId',
+                isNotEqualTo: userId,
+              ) // Solo mensajes que no envió el usuario
+              .where('status', whereIn: ['sent']) // Solo mensajes no entregados
+              .get();
+
+      for (final doc in messagesQuery.docs) {
+        batch.update(doc.reference, {'status': MessageStatus.delivered.name});
+      }
+
+      await batch.commit();
+    } catch (e) {
+      throw ServerException();
+    }
+  }
+
   Future<void> markAllMessagesAsRead(String chatId, String userId) async {
     try {
       final batch = firestore.batch();
@@ -267,7 +295,10 @@ class FirebaseChatService {
                 'senderId',
                 isNotEqualTo: userId,
               ) // Solo mensajes que no envió el usuario
-              .where('status', isNotEqualTo: 'read') // Solo mensajes no leídos
+              .where(
+                'status',
+                whereIn: ['sent', 'delivered'],
+              ) // Solo mensajes no leídos
               .get();
 
       for (final doc in messagesQuery.docs) {
@@ -327,32 +358,6 @@ class FirebaseChatService {
       }
 
       return totalUnread;
-    } catch (e) {
-      throw ServerException();
-    }
-  }
-
-  Future<void> updateUnreadCount(
-    String chatId,
-    String userId,
-    int count,
-  ) async {
-    try {
-      final chatRef = firestore.collection(_chatsCollection).doc(chatId);
-      final chatDoc = await chatRef.get();
-
-      if (chatDoc.exists) {
-        final chatData = chatDoc.data() as Map<String, dynamic>;
-        final currentUnreadCounts = Map<String, int>.from(
-          chatData['unreadCounts'] ?? {},
-        );
-        currentUnreadCounts[userId] = count;
-
-        await chatRef.update({
-          'unreadCounts': currentUnreadCounts,
-          'updatedAt': Timestamp.fromDate(DateTime.now()),
-        });
-      }
     } catch (e) {
       throw ServerException();
     }

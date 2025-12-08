@@ -75,13 +75,13 @@ class ChatListItem extends StatelessWidget {
                       Icon(
                         Icons.pets,
                         size: 14,
-                        color: theme.colorScheme.onSurface.withAlpha(150),
+                        color: theme.colorScheme.primary.withAlpha(200),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         chat.petName,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                          color: theme.colorScheme.primary.withAlpha(200),
                           fontWeight: FontWeight.w500,
                         ),
                       ),

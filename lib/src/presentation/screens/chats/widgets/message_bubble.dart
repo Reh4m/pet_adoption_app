@@ -27,32 +27,12 @@ class MessageBubble extends StatelessWidget {
         bottom: isConsecutive ? 2 : 8,
         top: isConsecutive ? 0 : 4,
       ),
-      child: Row(
-        mainAxisAlignment:
-            isOwnMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment:
+            isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!isOwnMessage && !isConsecutive) _buildSenderAvatar(theme),
-          if (!isOwnMessage && isConsecutive) const SizedBox(width: 32),
-          if (!isOwnMessage) const SizedBox(width: 8),
-
-          Flexible(
-            child: Column(
-              crossAxisAlignment:
-                  isOwnMessage
-                      ? CrossAxisAlignment.end
-                      : CrossAxisAlignment.start,
-              children: [
-                if (!isConsecutive) _buildMessageHeader(theme),
-                _buildMessageContent(theme),
-                if (!isConsecutive) _buildMessageFooter(theme),
-              ],
-            ),
-          ),
-
-          if (isOwnMessage) const SizedBox(width: 8),
-          if (isOwnMessage && !isConsecutive) _buildSenderAvatar(theme),
-          if (isOwnMessage && isConsecutive) const SizedBox(width: 32),
+          _buildMessageContent(theme),
+          if (!isConsecutive) _buildMessageFooter(theme),
         ],
       ),
     );
@@ -77,7 +57,7 @@ class MessageBubble extends StatelessWidget {
                 color: theme.colorScheme.primary,
               ),
               const SizedBox(width: 8),
-              Flexible(
+              Expanded(
                 child: Text(
                   message.content,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -94,91 +74,13 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildSenderAvatar(ThemeData theme) {
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color:
-            isOwnMessage
-                ? theme.colorScheme.primary.withAlpha(20)
-                : theme.colorScheme.secondary.withAlpha(20),
-      ),
-      child:
-          message.senderPhotoUrl != null && message.senderPhotoUrl!.isNotEmpty
-              ? ClipOval(
-                child: Image.network(
-                  message.senderPhotoUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                          _buildAvatarInitials(theme),
-                ),
-              )
-              : _buildAvatarInitials(theme),
-    );
-  }
-
-  Widget _buildAvatarInitials(ThemeData theme) {
-    final initials =
-        message.senderName.isNotEmpty
-            ? message.senderName[0].toUpperCase()
-            : '?';
-
-    return Center(
-      child: Text(
-        initials,
-        style: TextStyle(
-          color:
-              isOwnMessage
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.secondary,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessageHeader(ThemeData theme) {
-    if (isOwnMessage) return const SizedBox();
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 12, bottom: 4),
-      child: Text(
-        message.senderName,
-        style: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurface.withAlpha(150),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
   Widget _buildMessageContent(ThemeData theme) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
         color: isOwnMessage ? theme.colorScheme.primary : theme.cardColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(
-            isOwnMessage ? 18 : (isConsecutive ? 4 : 18),
-          ),
-          topRight: Radius.circular(
-            isOwnMessage ? (isConsecutive ? 4 : 18) : 18,
-          ),
-          bottomLeft: const Radius.circular(18),
-          bottomRight: const Radius.circular(18),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
-        ],
+        borderRadius: const BorderRadius.all(Radius.circular(18)),
       ),
       child:
           message.isImageMessage
@@ -278,7 +180,7 @@ class MessageBubble extends StatelessWidget {
         break;
       case MessageStatus.read:
         icon = Icons.done_all;
-        color = theme.colorScheme.primary;
+        color = theme.colorScheme.secondary;
         break;
     }
 

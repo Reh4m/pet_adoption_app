@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
@@ -35,20 +36,17 @@ class _RootScreenState extends State<RootScreen> {
     // Inicializar providers después de que el widget se construya
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
-      final adoptionProvider = context.read<AdoptionRequestProvider>();
 
       // Inicializar listener del usuario
       userProvider.startCurrentUserListener();
 
       // Inicializar listeners de solicitudes de adopción
-      _initializeAdoptionRequestListeners(userProvider, adoptionProvider);
+      _initializeAdoptionRequestListeners(userProvider);
     });
   }
 
-  void _initializeAdoptionRequestListeners(
-    UserProvider userProvider,
-    AdoptionRequestProvider adoptionProvider,
-  ) {
+  void _initializeAdoptionRequestListeners(UserProvider userProvider) {
+    final adoptionProvider = context.read<AdoptionRequestProvider>();
     final chatProvider = context.read<ChatProvider>();
 
     // Escuchar cambios en el usuario actual
@@ -91,10 +89,9 @@ class _RootScreenState extends State<RootScreen> {
   void dispose() {
     _pageController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<AdoptionRequestProvider>().stopAllListeners();
-        context.read<UserProvider>().clearCurrentUser();
-      }
+      di.sl<AdoptionRequestProvider>().stopAllListeners();
+      di.sl<ChatProvider>().stopUserChatsListener();
+      di.sl<UserProvider>().clearCurrentUser();
     });
     super.dispose();
   }

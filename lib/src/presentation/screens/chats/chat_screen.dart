@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
-import 'package:pet_adoption_app/src/domain/entities/chat/message_entity.dart';
+import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/chats/widgets/message_bubble.dart';
@@ -25,7 +26,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   ChatEntity? _currentChat;
-  String _currentUserId = '';
 
   @override
   void initState() {
@@ -35,10 +35,8 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _initializeChat() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
       final chatProvider = context.read<ChatProvider>();
 
-      _currentUserId = userProvider.currentUser?.id ?? '';
       _currentChat = widget.chat;
 
       if (_currentChat != null) {
@@ -49,11 +47,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
       // Iniciar listener de mensajes
       chatProvider.startChatMessagesListener(widget.chatId);
-
-      // Marcar mensajes como leídos
-      if (_currentUserId.isNotEmpty) {
-        chatProvider.markAllMessagesAsRead(widget.chatId, _currentUserId);
-      }
     });
   }
 
@@ -64,11 +57,9 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageFocusNode.dispose();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        final chatProvider = context.read<ChatProvider>();
-        chatProvider.stopChatMessagesListener(widget.chatId);
-        chatProvider.clearCurrentChat();
-      }
+      print('Disposing ChatScreen for chatId: ${widget.chatId}');
+      di.sl<ChatProvider>().stopChatMessagesListener(widget.chatId);
+      di.sl<ChatProvider>().clearCurrentChat();
     });
 
     super.dispose();
@@ -133,27 +124,14 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _handlePetTap() {
-    if (_currentChat?.petId != null) {
-      context.push('/pets/${_currentChat!.petId}');
-    }
-  }
-
-  void _handleUserTap() {
-    if (_currentChat != null && _currentUserId.isNotEmpty) {
-      final otherUserId = _currentChat!.getOtherParticipantId(_currentUserId);
-      context.push('/user/$otherUserId');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: _buildAppBar(theme),
-      body: Consumer2<ChatProvider, UserProvider>(
-        builder: (context, chatProvider, userProvider, child) {
+      body: Consumer<ChatProvider>(
+        builder: (context, chatProvider, child) {
           // Actualizar chat actual si es necesario
           if (chatProvider.currentChat != null && _currentChat == null) {
             _currentChat = chatProvider.currentChat;
@@ -170,7 +148,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
           return Column(
             children: [
-              _buildChatHeader(theme),
+              _buildChatHeader(theme, _currentChat!.petId),
               Expanded(child: _buildMessagesSection(chatProvider)),
               MessageInput(
                 controller: _messageController,
@@ -193,94 +171,82 @@ class _ChatScreenState extends State<ChatScreen> {
         icon: const Icon(Icons.arrow_back),
         onPressed: () => context.pop(),
       ),
-      title:
-          _currentChat != null
-              ? InkWell(
-                onTap: _handleUserTap,
-                child: Row(
-                  children: [
-                    _buildAppBarAvatar(theme),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _currentChat!.getOtherParticipantName(
-                              _currentUserId,
-                            ),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: theme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            'Adoptando: ${_currentChat!.petName}',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onPrimary.withAlpha(200),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+      title: Consumer<ChatProvider>(
+        builder: (_, chatProvider, __) {
+          final chat = chatProvider.currentChat;
+
+          if (chat == null) {
+            return Text(
+              'Chat',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onPrimary,
+              ),
+            );
+          }
+
+          final currentUserId = context.read<UserProvider>().currentUser?.id;
+
+          if (currentUserId == null) {
+            return Text(
+              'Error cargando usuario',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          }
+
+          final otherUserId = chatProvider.getParticipantId(
+            chat,
+            currentUserId,
+          );
+          final otherUser =
+              otherUserId != null
+                  ? chatProvider.getParticipantInfo(otherUserId)
+                  : null;
+
+          return InkWell(
+            onTap: () => context.push('/user/$otherUserId'),
+            child: Row(
+              children: [
+                _buildAppBarAvatar(theme, otherUser),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        otherUser?.displayName ?? 'Usuario desconocido',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      Text(
+                        'Adoptando: ${chat.petName}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onPrimary.withAlpha(200),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              )
-              : const Text('Chat'),
-      actions: [
-        if (_currentChat != null)
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              switch (value) {
-                case 'pet_details':
-                  _handlePetTap();
-                  break;
-                case 'user_profile':
-                  _handleUserTap();
-                  break;
-              }
-            },
-            itemBuilder:
-                (context) => [
-                  const PopupMenuItem(
-                    value: 'pet_details',
-                    child: Row(
-                      children: [
-                        Icon(Icons.pets),
-                        SizedBox(width: 8),
-                        Text('Ver mascota'),
-                      ],
-                    ),
-                  ),
-                  const PopupMenuItem(
-                    value: 'user_profile',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person),
-                        SizedBox(width: 8),
-                        Text('Ver perfil'),
-                      ],
-                    ),
-                  ),
-                ],
-          ),
-      ],
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildAppBarAvatar(ThemeData theme) {
-    final otherParticipantPhoto = _currentChat!.getOtherParticipantPhoto(
-      _currentUserId,
-    );
-    final otherParticipantName = _currentChat!.getOtherParticipantName(
-      _currentUserId,
-    );
+  Widget _buildAppBarAvatar(ThemeData theme, UserEntity? otherUser) {
+    final otherParticipantInitials = otherUser?.initials ?? 'U';
+    final otherParticipantPhoto = otherUser?.photoUrl;
 
     return Container(
       width: 32,
@@ -297,19 +263,17 @@ class _ChatScreenState extends State<ChatScreen> {
                   fit: BoxFit.cover,
                   errorBuilder:
                       (context, error, stackTrace) =>
-                          _buildInitials(theme, otherParticipantName),
+                          _buildInitials(theme, otherParticipantInitials),
                 ),
               )
-              : _buildInitials(theme, otherParticipantName),
+              : _buildInitials(theme, otherParticipantInitials),
     );
   }
 
-  Widget _buildInitials(ThemeData theme, String name) {
-    final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
-
+  Widget _buildInitials(ThemeData theme, String initals) {
     return Center(
       child: Text(
-        initials,
+        initals,
         style: TextStyle(
           color: theme.colorScheme.onPrimary,
           fontWeight: FontWeight.bold,
@@ -369,22 +333,14 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildChatHeader(ThemeData theme) {
+  Widget _buildChatHeader(ThemeData theme, String petId) {
     if (_currentChat == null) return const SizedBox();
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withAlpha(20),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outline.withAlpha(20),
-            width: 1,
-          ),
-        ),
-      ),
+      decoration: BoxDecoration(color: theme.colorScheme.primary.withAlpha(20)),
       child: InkWell(
-        onTap: _handlePetTap,
+        onTap: () => context.push('/pets/${petId}'),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(12),
@@ -490,6 +446,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final messages = chatProvider.getChatMessages(widget.chatId);
+    final currentUserId = context.read<UserProvider>().currentUser?.id;
 
     if (messages.isEmpty) {
       return Center(
@@ -522,25 +479,10 @@ class _ChatScreenState extends State<ChatScreen> {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
-        final isConsecutive = _isConsecutiveMessage(messages, index);
+        final isMe = message.senderId == currentUserId;
 
-        return MessageBubble(
-          message: message,
-          isOwnMessage: message.senderId == _currentUserId,
-          isConsecutive: isConsecutive,
-        );
+        return MessageBubble(message: message, isOwnMessage: isMe);
       },
     );
-  }
-
-  bool _isConsecutiveMessage(List<MessageEntity> messages, int index) {
-    if (index == messages.length - 1) return false;
-
-    final currentMessage = messages[index];
-    final nextMessage = messages[index + 1];
-
-    return currentMessage.senderId == nextMessage.senderId &&
-        currentMessage.timestamp.difference(nextMessage.timestamp).inMinutes <
-            2;
   }
 }

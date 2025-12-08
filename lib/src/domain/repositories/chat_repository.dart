@@ -23,7 +23,7 @@ abstract class ChatRepository {
 
   Future<Either<Failure, ChatEntity>> getChatById(String chatId);
 
-  Stream<Either<Failure, List<ChatEntity>>> getUserChats(String userId);
+  Stream<Either<Failure, List<ChatEntity>>> getUserChatsStream(String userId);
 
   Future<Either<Failure, Unit>> updateChatStatus(
     String chatId,
@@ -44,10 +44,17 @@ abstract class ChatRepository {
     String? imageUrl,
   });
 
-  Stream<Either<Failure, List<MessageEntity>>> getChatMessages(String chatId);
+  Stream<Either<Failure, List<MessageEntity>>> getChatMessagesStream(
+    String chatId,
+  );
 
   Future<Either<Failure, Unit>> markMessageAsRead(
     String messageId,
+    String userId,
+  );
+
+  Future<Either<Failure, Unit>> markAllMessagesAsDelivered(
+    String chatId,
     String userId,
   );
 
@@ -59,12 +66,6 @@ abstract class ChatRepository {
   Future<Either<Failure, Unit>> deleteMessage(String messageId);
 
   Future<Either<Failure, int>> getUnreadMessagesCount(String userId);
-
-  Future<Either<Failure, Unit>> updateUnreadCount(
-    String chatId,
-    String userId,
-    int count,
-  );
 
   Future<Either<Failure, Unit>> sendSystemMessage({
     required String chatId,
