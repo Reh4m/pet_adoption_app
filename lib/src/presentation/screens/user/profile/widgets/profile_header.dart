@@ -54,28 +54,32 @@ class ProfileHeader extends StatelessWidget {
   Widget _buildProfileImage(ThemeData theme) {
     return Stack(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: theme.colorScheme.onPrimary, width: 3),
-          ),
-          child: CircleAvatar(
-            radius: 48,
-            backgroundColor: theme.colorScheme.onPrimary.withAlpha(50),
-            backgroundImage:
-                user.hasPhoto ? NetworkImage(user.photoUrl!) : null,
-            child:
-                !user.hasPhoto
-                    ? Text(
-                      user.initials,
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                    : null,
+        InkWell(
+          onTap: isCurrentUser && user.canEditPhoto ? onChangePhoto : null,
+          borderRadius: BorderRadius.circular(50),
+          child: Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.colorScheme.onPrimary, width: 3),
+            ),
+            child: CircleAvatar(
+              radius: 48,
+              backgroundColor: theme.colorScheme.onPrimary.withAlpha(50),
+              backgroundImage:
+                  user.hasPhoto ? NetworkImage(user.photoUrl!) : null,
+              child:
+                  !user.hasPhoto
+                      ? Text(
+                        user.initials,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                      : null,
+            ),
           ),
         ),
         if (isCurrentUser && user.canEditPhoto)

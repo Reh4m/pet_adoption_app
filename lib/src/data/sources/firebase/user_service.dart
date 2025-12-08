@@ -182,6 +182,8 @@ class FirebaseUserService {
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
 
+      await updateFirebaseAuthUser(photoUrl: imageUrl);
+
       // Retornar el usuario actualizado
       return await getUserById(userId);
     } catch (e) {
