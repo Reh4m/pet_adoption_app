@@ -33,7 +33,6 @@ FutureOr<String?> authGuard(BuildContext context, GoRouterState state) async {
   }
 
   if (user != null) {
-    await user.reload();
     final updatedUser = firebaseAuth.currentUser;
 
     if (updatedUser == null) return '/login';

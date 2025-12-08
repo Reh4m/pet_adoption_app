@@ -185,7 +185,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     showDialog(
       context: context,
       builder:
-          (context) => CustomAlertDialog(
+          (dialogContext) => CustomAlertDialog(
             status: AlertDialogStatus.warning,
             title: 'Volver al Login',
             description:
@@ -193,7 +193,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             primaryButtonVariant: ButtonVariant.outline,
             primaryButtonText: 'Sí, Volver',
             onPrimaryPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
 
               await _signOutUseCase();
 
@@ -212,7 +212,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     showDialog(
       context: context,
       builder:
-          (context) => CustomAlertDialog(
+          (dialogContext) => CustomAlertDialog(
             status: AlertDialogStatus.warning,
             title: 'Cambiar Email',
             description:
@@ -220,7 +220,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
             primaryButtonVariant: ButtonVariant.outline,
             primaryButtonText: 'Cerrar Sesión',
             onPrimaryPressed: () async {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
 
               await _signOutUseCase();
 
