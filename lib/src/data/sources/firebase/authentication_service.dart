@@ -54,23 +54,20 @@ class FirebaseAuthenticationService {
   }
 
   Future<UserCredential> signInWithGoogle() async {
-    await firebaseAuth.currentUser?.reload();
-
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-    if (googleUser == null) {
-      throw UserNotFoundException();
-    }
-
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
     try {
+      final googleUser = await GoogleSignIn().signIn();
+
+      if (googleUser == null) {
+        throw UserNotFoundException();
+      }
+
+      final googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
       return await firebaseAuth.signInWithCredential(credential);
     } on FirebaseAuthException catch (e) {
       if (e.code == 'account-exists-with-different-credential') {
@@ -129,7 +126,7 @@ class FirebaseAuthenticationService {
 
   Future<bool> isRegistrationComplete() async {
     try {
-      final User? user = firebaseAuth.currentUser;
+      final user = firebaseAuth.currentUser;
 
       if (user == null) {
         throw UserNotFoundException();
