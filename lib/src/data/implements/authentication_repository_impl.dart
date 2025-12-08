@@ -200,6 +200,10 @@ class AuthenticationRepositoryImpl implements AuthenticationRepository {
         );
 
         await firebaseUserService.updateFirestoreUser(updatedUser);
+        await firebaseUserService.updateFirebaseAuthUser(
+          displayName: updatedUser.name,
+          photoUrl: updatedUser.photoUrl,
+        );
       } else {
         // Si no existe, crear nuevo usuario en Firestore
         await firebaseUserService.createUser(
