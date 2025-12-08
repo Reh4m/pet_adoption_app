@@ -164,7 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const SizedBox(height: 40),
                     _buildDivider(theme),
                     const SizedBox(height: 40),
-                    GoogleSignInButton(),
+                    const GoogleSignInButton(),
                     const SizedBox(height: 20),
                     _buildSignInPrompt(theme),
                   ],

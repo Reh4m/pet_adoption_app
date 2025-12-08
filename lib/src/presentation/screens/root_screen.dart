@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/requests_screen.dart';
@@ -18,27 +17,25 @@ class RootScreen extends StatefulWidget {
 }
 
 class _RootScreenState extends State<RootScreen> {
-  late final List<Widget> _pages;
-  int _selectedIndex = 0;
+  final PageController _pageController = PageController();
+
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const ChatListScreen(),
+    const AdoptionRequestsMainScreen(),
+    const CurrentUserProfileScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const HomeScreen(),
-      const ChatListScreen(),
-      const AdoptionRequestsMainScreen(),
-      const CurrentUserProfileScreen(),
-    ];
 
     // Inicializar providers después de que el widget se construya
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProvider = context.read<UserProvider>();
-      final authProvider = context.read<AuthenticationProvider>();
       final adoptionProvider = context.read<AdoptionRequestProvider>();
-
-      // Sincronizar usuario actual con Firestore si existe
-      authProvider.syncCurrentUserWithFirestore();
 
       // Inicializar listener del usuario
       userProvider.startCurrentUserListener();
@@ -84,15 +81,19 @@ class _RootScreenState extends State<RootScreen> {
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _currentIndex = index;
     });
+
+    _pageController.jumpToPage(index);
   }
 
   @override
   void dispose() {
+    _pageController.dispose();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<AdoptionRequestProvider>().stopAllListeners();
+        context.read<UserProvider>().clearCurrentUser();
       }
     });
     super.dispose();
@@ -103,7 +104,16 @@ class _RootScreenState extends State<RootScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _pages),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: _screens,
+      ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
         decoration: BoxDecoration(
@@ -147,7 +157,7 @@ class _RootScreenState extends State<RootScreen> {
                               Icons.chat_bubble_outline,
                               size: 24,
                               color:
-                                  _selectedIndex == 1
+                                  _currentIndex == 1
                                       ? theme.colorScheme.secondary
                                       : theme.colorScheme.onSurface,
                             ),
@@ -182,7 +192,7 @@ class _RootScreenState extends State<RootScreen> {
                         Icons.chat_bubble_outline,
                         size: 24,
                         color:
-                            _selectedIndex == 1
+                            _currentIndex == 1
                                 ? theme.colorScheme.secondary
                                 : theme.colorScheme.onSurface,
                       );
@@ -203,7 +213,7 @@ class _RootScreenState extends State<RootScreen> {
                                 Icons.notifications_outlined,
                                 size: 24,
                                 color:
-                                    _selectedIndex == 2
+                                    _currentIndex == 2
                                         ? theme.colorScheme.secondary
                                         : theme.colorScheme.onSurface,
                               ),
@@ -239,7 +249,7 @@ class _RootScreenState extends State<RootScreen> {
                 ),
                 const GButton(icon: Icons.person_outline, text: 'Perfil'),
               ],
-              selectedIndex: _selectedIndex,
+              selectedIndex: _currentIndex,
               onTabChange: _onItemTapped,
             );
           },

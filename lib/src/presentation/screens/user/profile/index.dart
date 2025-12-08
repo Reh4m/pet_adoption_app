@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/providers/authentication_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
@@ -38,10 +37,10 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
       final userProvider = context.read<UserProvider>();
       final petProvider = context.read<PetProvider>();
 
-      // Cargar datos del usuario actual si no están cargados
-      if (userProvider.currentUser == null) {
-        userProvider.loadCurrentUser();
-      }
+      // // Cargar datos del usuario actual si no están cargados
+      // if (userProvider.currentUser == null) {
+      //   userProvider.loadCurrentUser();
+      // }
 
       // Cargar mascotas del usuario actual
       final currentUser = userProvider.currentUser;
@@ -239,11 +238,10 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
   }
 
   Future<void> _signOut() async {
-    final authProvider = context.read<AuthenticationProvider>();
     final userProvider = context.read<UserProvider>();
     final petProvider = context.read<PetProvider>();
 
-    await authProvider.signOut();
+    await userProvider.signOut();
     userProvider.clearCurrentUser();
     petProvider.stopRealtimeUpdates();
 
@@ -401,7 +399,7 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
                                       Icons.logout,
                                       color: theme.colorScheme.error,
                                     ),
-                                    SizedBox(width: 10),
+                                    const SizedBox(width: 10),
                                     Text(
                                       'Cerrar sesión',
                                       style: TextStyle(

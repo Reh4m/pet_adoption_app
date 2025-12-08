@@ -5,20 +5,21 @@ import 'package:pet_adoption_app/src/core/di/index.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_in_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/auth/sign_up_entity.dart';
-import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 
-enum AuthState { initial, loading, success, error }
+enum AuthState { initial, loading, checking, verified, success, error }
 
 class AuthenticationProvider extends ChangeNotifier {
   final SignInUseCase _signInUseCase = sl<SignInUseCase>();
   final SignUpUseCase _signUpUseCase = sl<SignUpUseCase>();
   final SignInWithGoogleUseCase _signInWithGoogleUseCase =
       sl<SignInWithGoogleUseCase>();
-  final SignOutUseCase _signOutUseCase = sl<SignOutUseCase>();
-
-  final CreateOrUpdateUserFromAuthUseCase _createOrUpdateUserFromAuthUseCase =
-      sl<CreateOrUpdateUserFromAuthUseCase>();
+  final SendEmailVerificationUseCase _sendEmailVerificationUseCase =
+      sl<SendEmailVerificationUseCase>();
+  final CheckEmailVerificationUseCase _checkEmailVerificationUseCase =
+      sl<CheckEmailVerificationUseCase>();
+  final SaveUserDataToFirestoreUseCase _saveUserDataToFirestoreUseCase =
+      sl<SaveUserDataToFirestoreUseCase>();
 
   AuthState _state = AuthState.initial;
   String? _errorMessage;
@@ -27,7 +28,6 @@ class AuthenticationProvider extends ChangeNotifier {
   AuthState get state => _state;
   String? get errorMessage => _errorMessage;
   User? get currentUser => _currentUser;
-  bool get isAuthenticated => _currentUser != null;
 
   Future<void> signIn(String email, String password) async {
     _setState(AuthState.loading);
@@ -40,11 +40,6 @@ class AuthenticationProvider extends ChangeNotifier {
       (failure) async => _setError(_mapFailureToMessage(failure)),
       (userCredential) async {
         _currentUser = userCredential.user;
-
-        // Crear documento de usuario en Firestore
-        if (_currentUser != null) {
-          await _createOrUpdateUserDocument(_currentUser!);
-        }
 
         _setState(AuthState.success);
       },
@@ -73,11 +68,6 @@ class AuthenticationProvider extends ChangeNotifier {
       (userCredential) async {
         _currentUser = userCredential.user;
 
-        // Crear documento de usuario en Firestore
-        if (_currentUser != null) {
-          await _createOrUpdateUserDocument(_currentUser!);
-        }
-
         _setState(AuthState.success);
       },
     );
@@ -93,53 +83,58 @@ class AuthenticationProvider extends ChangeNotifier {
       (userCredential) async {
         _currentUser = userCredential.user;
 
-        // Crear o actualizar documento de usuario en Firestore
-        if (_currentUser != null) {
-          await _createOrUpdateUserDocument(_currentUser!);
-        }
-
         _setState(AuthState.success);
       },
     );
   }
 
-  Future<void> signOut() async {
+  Future<void> sendEmailVerification() async {
     _setState(AuthState.loading);
 
-    final result = await _signOutUseCase();
+    final result = await _sendEmailVerificationUseCase();
 
-    result.fold((failure) => _setError(_mapFailureToMessage(failure)), (_) {
-      _currentUser = null;
-      _setState(AuthState.initial);
-    });
+    result.fold(
+      (failure) => _setError(_mapFailureToMessage(failure)),
+      (_) => _setState(AuthState.initial),
+    );
   }
 
-  Future<void> _createOrUpdateUserDocument(User firebaseUser) async {
-    try {
-      final result = await _createOrUpdateUserFromAuthUseCase(firebaseUser);
+  Future<bool> checkEmailVerification() async {
+    _setState(AuthState.checking);
 
-      result.fold(
-        (failure) {
-          debugPrint(
-            'Error al crear/actualizar documento de usuario: $failure',
-          );
-        },
-        (userEntity) {
-          debugPrint(
-            'Documento de usuario creado/actualizado: ${userEntity.id}',
-          );
-        },
-      );
-    } catch (e) {
-      debugPrint('Error inesperado al crear documento de usuario: $e');
-    }
+    final result = await _checkEmailVerificationUseCase();
+
+    return result.fold(
+      (failure) {
+        _setError(_mapFailureToMessage(failure));
+        return false;
+      },
+      (isVerified) {
+        if (isVerified) {
+          _setState(AuthState.verified);
+        } else {
+          _setState(AuthState.initial);
+        }
+        return isVerified;
+      },
+    );
   }
 
-  Future<void> syncCurrentUserWithFirestore() async {
-    final firebaseUser = FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null) {
-      await _createOrUpdateUserDocument(firebaseUser);
-    }
+  Future<bool> createUserAfterEmailVerification() async {
+    _setState(AuthState.loading);
+
+    final result = await _saveUserDataToFirestoreUseCase();
+
+    return result.fold(
+      (failure) {
+        _setError(_mapFailureToMessage(failure));
+        return false;
+      },
+      (_) {
+        _setState(AuthState.verified);
+        return true;
+      },
+    );
   }
 
   void _setState(AuthState newState) {

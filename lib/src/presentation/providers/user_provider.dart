@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/core/constants/error_messages.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart';
 import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
-import 'package:pet_adoption_app/src/domain/usecases/auth_user_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
 enum UserState { initial, loading, success, error }
@@ -25,15 +25,13 @@ class UserProvider extends ChangeNotifier {
       sl<UpdateNotificationSettingsUseCase>();
   final UpdateSearchRadiusUseCase _updateSearchRadiusUseCase =
       sl<UpdateSearchRadiusUseCase>();
-  final CreateOrUpdateUserFromAuthUseCase _createOrUpdateUserFromAuthUseCase =
-      sl<CreateOrUpdateUserFromAuthUseCase>();
-  final SyncUserWithAuthUseCase _syncUserWithAuthUseCase =
-      sl<SyncUserWithAuthUseCase>();
+  final SignOutUseCase _signOutUseCase = sl<SignOutUseCase>();
 
   UserState _currentUserState = UserState.initial;
   UserEntity? _currentUser;
   String? _currentUserError;
   StreamSubscription? _currentUserSubscription;
+  StreamSubscription? _authStateSubscription;
 
   UserState _operationState = UserState.initial;
   String? _operationError;
@@ -41,6 +39,8 @@ class UserProvider extends ChangeNotifier {
   UserState _userProfileState = UserState.initial;
   UserEntity? _userProfile;
   String? _userProfileError;
+
+  FirebaseAuth get _firebaseAuth => sl<FirebaseAuth>();
 
   UserState get currentUserState => _currentUserState;
   UserEntity? get currentUser => _currentUser;
@@ -53,6 +53,18 @@ class UserProvider extends ChangeNotifier {
   UserState get userProfileState => _userProfileState;
   UserEntity? get userProfile => _userProfile;
   String? get userProfileError => _userProfileError;
+
+  void initialize() async {
+    _authStateSubscription = _firebaseAuth.authStateChanges().listen((user) {
+      if (user != null) {
+        // User is signed in
+        startCurrentUserListener();
+      } else {
+        // User is signed out
+        clearCurrentUser();
+      }
+    });
+  }
 
   void startCurrentUserListener() {
     _setCurrentUserState(UserState.loading);
@@ -78,36 +90,9 @@ class UserProvider extends ChangeNotifier {
     _currentUserSubscription = null;
   }
 
-  Future<void> syncWithAuth() async {
-    _setCurrentUserState(UserState.loading);
-
-    final result = await _syncUserWithAuthUseCase();
-
-    result.fold(
-      (failure) => _setCurrentUserError(_mapFailureToMessage(failure)),
-      (user) {
-        _currentUser = user;
-        _setCurrentUserState(UserState.success);
-      },
-    );
-  }
-
-  Future<bool> createOrUpdateFromAuth(User firebaseUser) async {
-    _setCurrentUserState(UserState.loading);
-
-    final result = await _createOrUpdateUserFromAuthUseCase(firebaseUser);
-
-    return result.fold(
-      (failure) {
-        _setCurrentUserError(_mapFailureToMessage(failure));
-        return false;
-      },
-      (user) {
-        _currentUser = user;
-        _setCurrentUserState(UserState.success);
-        return true;
-      },
-    );
+  void stopAuthStateListener() {
+    _authStateSubscription?.cancel();
+    _authStateSubscription = null;
   }
 
   Future<void> loadCurrentUser() async {
@@ -208,6 +193,20 @@ class UserProvider extends ChangeNotifier {
     );
   }
 
+  Future<void> signOut() async {
+    _setCurrentUserState(UserState.loading);
+
+    final result = await _signOutUseCase();
+
+    result.fold(
+      (failure) => _setCurrentUserError(_mapFailureToMessage(failure)),
+      (_) {
+        clearCurrentUser();
+        _setCurrentUserState(UserState.initial);
+      },
+    );
+  }
+
   Future<bool> updateSearchRadius(double radius) async {
     if (_currentUser == null) return false;
 
@@ -235,8 +234,9 @@ class UserProvider extends ChangeNotifier {
   }
 
   void clearCurrentUser() {
-    stopCurrentUserListener();
     _currentUser = null;
+    stopCurrentUserListener();
+    stopAuthStateListener();
     _setCurrentUserState(UserState.initial);
     clearUserProfile();
   }
@@ -336,6 +336,7 @@ class UserProvider extends ChangeNotifier {
   @override
   void dispose() {
     stopCurrentUserListener();
+    stopAuthStateListener();
     super.dispose();
   }
 }

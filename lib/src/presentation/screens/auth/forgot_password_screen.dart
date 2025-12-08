@@ -242,7 +242,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           size: 130,
           minGrowth: 10,
           styles: BlobStyles(color: LightTheme.successLight),
-          child: Icon(Icons.lock_reset, size: 60, color: LightTheme.success),
+          child: const Icon(
+            Icons.lock_reset,
+            size: 60,
+            color: LightTheme.success,
+          ),
         ),
         const SizedBox(height: 20),
         Text(
