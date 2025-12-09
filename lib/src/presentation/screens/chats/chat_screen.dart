@@ -1,12 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
+import 'package:pet_adoption_app/src/domain/entities/chat/message_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/media_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/chats/widgets/message_bubble.dart';
 import 'package:pet_adoption_app/src/presentation/screens/chats/widgets/message_input.dart';
+import 'package:pet_adoption_app/src/presentation/screens/media/index.dart';
+import 'package:pet_adoption_app/src/presentation/utils/image_picker_service.dart';
 import 'package:pet_adoption_app/src/presentation/utils/toast_notification.dart';
 import 'package:provider/provider.dart';
 
@@ -124,6 +130,144 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> _handleAttachmentTap() async {
+    await ImagePickerService.showMediaPickerDialog(
+      context,
+      onMediaSelected: (file, mediaType) async {
+        if (file == null) return;
+
+        // Mostrar preview
+        final result = await Navigator.push<Map<String, dynamic>>(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) =>
+                    MediaPreviewScreen(file: file, mediaType: mediaType),
+          ),
+        );
+
+        if (result == null) return;
+
+        final File selectedFile = result['file'];
+        final String caption = result['caption'] ?? '';
+
+        // Subir archivo según su tipo
+        await _uploadAndSendMedia(
+          file: selectedFile,
+          mediaType: mediaType,
+          caption: caption,
+        );
+      },
+    );
+  }
+
+  Future<void> _uploadAndSendMedia({
+    required File file,
+    required MediaType mediaType,
+    required String caption,
+  }) async {
+    final currentUserId = context.read<UserProvider>().currentUser?.id;
+    if (currentUserId == null) return;
+
+    final mediaProvider = context.read<MediaProvider>();
+    String? mediaUrl;
+
+    // Subir el archivo según su tipo
+    switch (mediaType) {
+      case MediaType.image:
+        mediaUrl = await mediaProvider.uploadImage(
+          image: file,
+          chatId: widget.chatId,
+          senderId: currentUserId,
+        );
+        break;
+      case MediaType.video:
+        mediaUrl = await mediaProvider.uploadVideo(
+          video: file,
+          chatId: widget.chatId,
+          senderId: currentUserId,
+        );
+        break;
+    }
+
+    if (mediaUrl == null && mounted) {
+      _showToast(
+        title: 'Error',
+        description: mediaProvider.error ?? 'No se pudo subir el archivo',
+        type: ToastNotificationType.error,
+      );
+      return;
+    }
+
+    // Crear y enviar mensaje
+    final userProvider = context.read<UserProvider>();
+    final chatProvider = context.read<ChatProvider>();
+    final currentUser = userProvider.currentUser;
+
+    if (currentUser == null) {
+      ToastNotification.show(
+        context,
+        title: 'Error',
+        description: 'Debes estar autenticado para enviar mensajes.',
+        type: ToastNotificationType.error,
+      );
+      return;
+    }
+
+    final mediaTypeString = _getMediaTypeString(mediaType);
+    final messageContent = caption.isNotEmpty ? caption : mediaTypeString;
+
+    final success = await chatProvider.sendMessage(
+      chatId: widget.chatId,
+      senderId: currentUserId,
+      senderName: currentUser.displayName,
+      senderPhotoUrl: currentUser.photoUrl,
+      type: _getMessageType(mediaType),
+      content: messageContent,
+      imageUrl: mediaUrl,
+    );
+
+    if (!success && mounted) {
+      _showToast(
+        title: 'Error',
+        description:
+            chatProvider.operationError ?? 'No se pudo enviar el mensaje',
+        type: ToastNotificationType.error,
+      );
+    }
+  }
+
+  String _getMediaTypeString(MediaType mediaType) {
+    switch (mediaType) {
+      case MediaType.image:
+        return 'Imagen';
+      case MediaType.video:
+        return 'Video';
+    }
+  }
+
+  MessageType _getMessageType(MediaType mediaType) {
+    switch (mediaType) {
+      case MediaType.image:
+        return MessageType.image;
+      case MediaType.video:
+        return MessageType.video;
+    }
+  }
+
+  void _showToast({
+    required String title,
+    required String description,
+    required ToastNotificationType type,
+  }) {
+    ToastNotification.show(
+      context,
+      title: title,
+      description: description,
+      type: type,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -154,6 +298,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: _messageController,
                 focusNode: _messageFocusNode,
                 onSend: _sendMessage,
+                onAttachment: _handleAttachmentTap,
                 isLoading: chatProvider.sendMessageState == ChatState.loading,
               ),
             ],

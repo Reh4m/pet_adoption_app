@@ -7,6 +7,7 @@ import 'package:pet_adoption_app/src/core/network/network_info.dart';
 import 'package:pet_adoption_app/src/data/implements/adoption_request_respository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/chat_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/implements/media_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/pet_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/adoption_requests_service.dart';
@@ -18,12 +19,14 @@ import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
 import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/chat_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/media_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/media_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
@@ -127,6 +130,14 @@ Future<void> init() async {
   sl.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(
       firebaseChatService: sl<FirebaseChatService>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // Media Repository
+  sl.registerLazySingleton<MediaRepository>(
+    () => MediaRepositoryImpl(
+      storageService: sl<FirebaseStorageService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -353,6 +364,29 @@ Future<void> init() async {
 
   sl.registerLazySingleton<SendAdoptionStatusUpdateUseCase>(
     () => SendAdoptionStatusUpdateUseCase(sl<ChatRepository>()),
+  );
+
+  // Media Use Cases
+  sl.registerLazySingleton<UploadChatImageUseCase>(
+    () => UploadChatImageUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<UploadChatVideoUseCase>(
+    () => UploadChatVideoUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<UploadVideoThumbnailUseCase>(
+    () => UploadVideoThumbnailUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<DeleteMediaUseCase>(
+    () => DeleteMediaUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<UploadFileWithProgressUseCase>(
+    () => UploadFileWithProgressUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<ValidateImageSizeUseCase>(
+    () => ValidateImageSizeUseCase(sl<MediaRepository>()),
+  );
+  sl.registerLazySingleton<ValidateVideoSizeUseCase>(
+    () => ValidateVideoSizeUseCase(sl<MediaRepository>()),
   );
 
   // Providers

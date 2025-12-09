@@ -5,6 +5,7 @@ class MessageInput extends StatefulWidget {
   final FocusNode focusNode;
   final VoidCallback onSend;
   final bool isLoading;
+  final VoidCallback onAttachment;
 
   const MessageInput({
     super.key,
@@ -12,6 +13,7 @@ class MessageInput extends StatefulWidget {
     required this.focusNode,
     required this.onSend,
     this.isLoading = false,
+    required this.onAttachment,
   });
 
   @override
@@ -101,14 +103,7 @@ class _MessageInputState extends State<MessageInput> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () {
-                        // TODO: Implementar selección de imágenes
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Función de imágenes próximamente'),
-                          ),
-                        );
-                      },
+                      onPressed: widget.onAttachment,
                       icon: Icon(
                         Icons.photo_camera,
                         color: theme.colorScheme.onSurface.withAlpha(150),
@@ -142,12 +137,12 @@ class _MessageInputState extends State<MessageInput> {
         child:
             widget.isLoading
                 ? SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 15,
+                  height: 15,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      theme.colorScheme.onPrimary,
+                      theme.colorScheme.onSurface,
                     ),
                   ),
                 )

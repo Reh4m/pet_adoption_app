@@ -1,18 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:pet_adoption_app/src/domain/entities/chat/message_entity.dart';
+import 'package:pet_adoption_app/src/presentation/screens/media/messages/image_message_widget.dart';
+import 'package:pet_adoption_app/src/presentation/screens/media/messages/video_message_widget.dart';
+import 'package:pet_adoption_app/src/presentation/screens/media/viewers/full_screen_image_viewer.dart';
+import 'package:pet_adoption_app/src/presentation/screens/media/viewers/full_screen_video_viewer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class MessageBubble extends StatelessWidget {
   final MessageEntity message;
   final bool isOwnMessage;
-  final bool isConsecutive;
 
   const MessageBubble({
     super.key,
     required this.message,
     required this.isOwnMessage,
-    this.isConsecutive = false,
   });
+
+  void _openImageViewer(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => FullScreenImageViewer(
+              imageUrl: message.imageUrl!,
+              caption: message.content.isNotEmpty ? message.content : null,
+            ),
+      ),
+    );
+  }
+
+  void _openVideoViewer(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => FullScreenVideoViewer(
+              videoUrl: message.imageUrl!,
+              caption: message.content.isNotEmpty ? message.content : null,
+            ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,16 +51,13 @@ class MessageBubble extends StatelessWidget {
     }
 
     return Container(
-      margin: EdgeInsets.only(
-        bottom: isConsecutive ? 2 : 8,
-        top: isConsecutive ? 0 : 4,
-      ),
+      margin: const EdgeInsets.only(bottom: 8, top: 4),
       child: Column(
         crossAxisAlignment:
             isOwnMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          _buildMessageContent(theme),
-          if (!isConsecutive) _buildMessageFooter(theme),
+          _buildMessageChip(context, theme),
+          _buildMessageFooter(theme),
         ],
       ),
     );
@@ -74,7 +99,7 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildMessageContent(ThemeData theme) {
+  Widget _buildMessageChip(BuildContext context, ThemeData theme) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -82,61 +107,38 @@ class MessageBubble extends StatelessWidget {
         color: isOwnMessage ? theme.colorScheme.primary : theme.cardColor,
         borderRadius: const BorderRadius.all(Radius.circular(18)),
       ),
-      child:
-          message.isImageMessage
-              ? _buildImageMessage(theme)
-              : _buildTextMessage(theme),
+      child: _buildMessageContent(context, theme),
     );
   }
 
-  Widget _buildTextMessage(ThemeData theme) {
-    return Text(
-      message.content,
-      style: theme.textTheme.bodyMedium?.copyWith(
-        color:
-            isOwnMessage
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurface,
-        height: 1.4,
-      ),
-    );
-  }
+  Widget _buildMessageContent(BuildContext context, ThemeData theme) {
+    switch (message.type) {
+      case MessageType.system:
+      case MessageType.text:
+        return Text(
+          message.content,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: _getTextColor(theme),
+          ),
+        );
 
-  Widget _buildImageMessage(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (message.imageUrl != null)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              message.imageUrl!,
-              width: 200,
-              height: 150,
-              fit: BoxFit.cover,
-              errorBuilder:
-                  (context, error, stackTrace) => Container(
-                    width: 200,
-                    height: 150,
-                    color: theme.colorScheme.onSurface.withAlpha(20),
-                    child: const Icon(Icons.broken_image),
-                  ),
-            ),
-          ),
-        if (message.content.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            message.content,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color:
-                  isOwnMessage
-                      ? theme.colorScheme.onPrimary
-                      : theme.colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ],
-    );
+      case MessageType.image:
+        return ImageMessageWidget(
+          imageUrl: message.imageUrl!,
+          caption: message.content.isNotEmpty ? message.content : null,
+          isMe: isOwnMessage,
+          onTap: () => _openImageViewer(context),
+        );
+
+      case MessageType.video:
+        return VideoMessageWidget(
+          videoUrl: message.imageUrl!,
+          // thumbnailUrl: message.thumbnailUrl,
+          caption: message.content.isNotEmpty ? message.content : null,
+          isMe: isOwnMessage,
+          onTap: () => _openVideoViewer(context),
+        );
+    }
   }
 
   Widget _buildMessageFooter(ThemeData theme) {
@@ -164,6 +166,9 @@ class MessageBubble extends StatelessWidget {
       ),
     );
   }
+
+  Color _getTextColor(ThemeData theme) =>
+      isOwnMessage ? theme.colorScheme.onPrimary : theme.colorScheme.onSurface;
 
   Widget _buildMessageStatus(ThemeData theme) {
     IconData icon;

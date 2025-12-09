@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum MessageType { text, image, system }
+enum MessageType { text, image, video, system }
 
 enum MessageStatus { sent, delivered, read }
 
@@ -54,6 +54,7 @@ class MessageEntity extends Equatable {
   bool get isSent => status == MessageStatus.sent;
   bool get isTextMessage => type == MessageType.text;
   bool get isImageMessage => type == MessageType.image;
+  bool get isVieoMessage => type == MessageType.video;
 
   String get timeString {
     final now = DateTime.now();

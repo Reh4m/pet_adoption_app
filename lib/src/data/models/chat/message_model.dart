@@ -115,6 +115,8 @@ class MessageModel extends MessageEntity {
         return MessageType.text;
       case 'image':
         return MessageType.image;
+      case 'video':
+        return MessageType.video;
       case 'system':
         return MessageType.system;
       default:
