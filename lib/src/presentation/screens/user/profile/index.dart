@@ -26,30 +26,6 @@ class CurrentUserProfileScreen extends StatefulWidget {
 class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
   final ImagePicker _picker = ImagePicker();
 
-  @override
-  void initState() {
-    super.initState();
-    _initializeProfile();
-  }
-
-  void _initializeProfile() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-      final petProvider = context.read<PetProvider>();
-
-      // // Cargar datos del usuario actual si no están cargados
-      // if (userProvider.currentUser == null) {
-      //   userProvider.loadCurrentUser();
-      // }
-
-      // Cargar mascotas del usuario actual
-      final currentUser = userProvider.currentUser;
-      if (currentUser != null) {
-        petProvider.startRealtimeUpdates(); // Para obtener todas las mascotas
-      }
-    });
-  }
-
   Future<void> _handleChangeProfilePhoto() async {
     final userProvider = context.read<UserProvider>();
 
@@ -238,12 +214,7 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
   }
 
   Future<void> _signOut() async {
-    final userProvider = context.read<UserProvider>();
-    final petProvider = context.read<PetProvider>();
-
-    await userProvider.signOut();
-    userProvider.clearCurrentUser();
-    petProvider.stopRealtimeUpdates();
+    await context.read<UserProvider>().signOut();
 
     if (mounted) {
       context.go('/login');

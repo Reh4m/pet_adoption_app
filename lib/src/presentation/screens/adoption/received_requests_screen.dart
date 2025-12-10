@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/widgets/adoption_request_card.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/widgets/request_detail_dialog.dart';
 import 'package:pet_adoption_app/src/presentation/utils/toast_notification.dart';
@@ -23,25 +22,6 @@ class _ReceivedRequestsScreenState extends State<ReceivedRequestsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
-    _initializeRequests();
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _initializeRequests() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-      final adoptionProvider = context.read<AdoptionRequestProvider>();
-      final currentUser = userProvider.currentUser;
-
-      if (currentUser != null) {
-        adoptionProvider.startReceivedRequestsListener(currentUser.id);
-      }
-    });
   }
 
   void _handleRequestAction(AdoptionRequestEntity request) {
@@ -167,6 +147,12 @@ class _ReceivedRequestsScreenState extends State<ReceivedRequestsScreen>
       description: description,
       type: type,
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override

@@ -29,11 +29,6 @@ import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/media_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
-import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/pet_registration_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 
 final sl = GetIt.instance;
 
@@ -388,15 +383,4 @@ Future<void> init() async {
   sl.registerLazySingleton<ValidateVideoSizeUseCase>(
     () => ValidateVideoSizeUseCase(sl<MediaRepository>()),
   );
-
-  // Providers
-  sl.registerLazySingleton<UserProvider>(() => UserProvider()..initialize());
-  sl.registerLazySingleton<PetProvider>(() => PetProvider());
-  sl.registerLazySingleton<AdoptionRequestProvider>(
-    () => AdoptionRequestProvider(),
-  );
-  sl.registerLazySingleton<PetRegistrationProvider>(
-    () => PetRegistrationProvider(),
-  );
-  sl.registerLazySingleton<ChatProvider>(() => ChatProvider());
 }

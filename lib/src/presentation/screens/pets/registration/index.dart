@@ -30,12 +30,6 @@ class _PetRegistrationScreenState extends State<PetRegistrationScreen> {
     _provider = PetRegistrationProvider();
   }
 
-  @override
-  void dispose() {
-    _provider.dispose();
-    super.dispose();
-  }
-
   Future<bool> _onWillPop() async {
     // Si ya completó el registro, permitir salir
     if (_provider.isCompleted) return true;
@@ -125,6 +119,12 @@ class _PetRegistrationScreenState extends State<PetRegistrationScreen> {
             },
           ),
     );
+  }
+
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
   }
 
   @override

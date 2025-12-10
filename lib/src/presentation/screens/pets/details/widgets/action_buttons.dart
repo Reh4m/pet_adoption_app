@@ -6,15 +6,8 @@ import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.d
 
 class ActionButtons extends StatelessWidget {
   final PetEntity pet;
-  final VoidCallback onInterest;
-  final VoidCallback onContact;
 
-  const ActionButtons({
-    super.key,
-    required this.pet,
-    required this.onInterest,
-    required this.onContact,
-  });
+  const ActionButtons({super.key, required this.pet});
 
   void _handleAdoptionRequest(BuildContext context) {
     context.push('/adoption/request/${pet.id}', extra: {'pet': pet});

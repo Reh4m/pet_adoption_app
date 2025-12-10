@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 class AdoptionRequestsMainScreen extends StatefulWidget {
@@ -20,27 +19,12 @@ class _AdoptionRequestsMainScreenState extends State<AdoptionRequestsMainScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _initializeProvider();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _initializeProvider() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-      final adoptionProvider = context.read<AdoptionRequestProvider>();
-      final currentUser = userProvider.currentUser;
-
-      if (currentUser != null) {
-        // Inicializa los listeners para ambos tipos de solicitudes
-        adoptionProvider.startReceivedRequestsListener(currentUser.id);
-        adoptionProvider.startSentRequestsListener(currentUser.id);
-      }
-    });
   }
 
   @override

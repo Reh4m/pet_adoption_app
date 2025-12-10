@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
-import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
-import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/details/widgets/action_buttons.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/details/widgets/owner_info_card.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/details/widgets/pet_characteristics.dart';
@@ -27,16 +24,22 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _isAppBarExpanded = true;
 
+  late final PetProvider _petProvider;
+
   @override
   void initState() {
     super.initState();
-    _loadPetDetails();
+    _initializeProviders();
     _setupScrollListener();
   }
 
-  void _loadPetDetails() {
+  void _initializeProviders() {
+    _petProvider = context.read<PetProvider>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().getPetById(widget.petId);
+      if (mounted) {
+        _petProvider.loadPetById(widget.petId);
+      }
     });
   }
 
@@ -51,114 +54,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _handleInterest(PetEntity pet) {
-    // TODO: Implementar sistema de solicitudes
-    ToastNotification.show(
-      context,
-      title: '¡Interés registrado!',
-      description:
-          'Próximamente podrás enviar una solicitud de adopción para ${pet.name}.',
-      type: ToastNotificationType.success,
-    );
-  }
-
-  void _handleContact(PetEntity pet) async {
-    final userProvider = context.read<UserProvider>();
-    final chatProvider = context.read<ChatProvider>();
-    final adoptionProvider = context.read<AdoptionRequestProvider>();
-
-    final currentUser = userProvider.currentUser;
-    if (currentUser == null) {
-      ToastNotification.show(
-        context,
-        title: 'Inicia sesión',
-        description: 'Debes iniciar sesión para contactar al dueño.',
-        type: ToastNotificationType.warning,
-      );
-      return;
-    }
-
-    if (currentUser.id == pet.ownerId) {
-      ToastNotification.show(
-        context,
-        title: 'Es tu mascota',
-        description: 'No puedes contactarte contigo mismo.',
-        type: ToastNotificationType.info,
-      );
-      return;
-    }
-
-    // Buscar solicitud de adopción existente
-    final hasExisting = await adoptionProvider.hasExistingRequest(
-      pet.id,
-      currentUser.id,
-    );
-
-    if (!hasExisting) {
-      // No hay solicitud, redirigir para crear una
-      ToastNotification.show(
-        // ignore: use_build_context_synchronously
-        context,
-        title: 'Solicitud requerida',
-        description: 'Primero debes enviar una solicitud de adopción.',
-        type: ToastNotificationType.info,
-      );
-      // ignore: use_build_context_synchronously
-      context.push('/adoption/request/${pet.id}', extra: {'pet': pet});
-      return;
-    }
-
-    final existingRequest = adoptionProvider.sentRequests.firstWhere(
-      (request) => request.petId == pet.id && request.isPending,
-    );
-
-    if (!existingRequest.isAccepted) {
-      ToastNotification.show(
-        // ignore: use_build_context_synchronously
-        context,
-        title: 'Solicitud pendiente',
-        description:
-            'Espera a que el dueño acepte tu solicitud para iniciar el chat.',
-        type: ToastNotificationType.info,
-      );
-      return;
-    }
-
-    final owner = userProvider.userProfile!;
-
-    final chat = await chatProvider.createOrGetChat(
-      adoptionRequestId: existingRequest.id,
-      petId: pet.id,
-      petName: pet.name,
-      petImageUrls: pet.imageUrls,
-      requesterId: currentUser.id,
-      requesterName: currentUser.displayName,
-      requesterPhotoUrl: currentUser.photoUrl,
-      ownerId: owner.id,
-      ownerName: owner.displayName,
-      ownerPhotoUrl: owner.photoUrl,
-    );
-
-    if (chat != null && mounted) {
-      context.push('/chat/${chat.id}', extra: {'chat': chat});
-    } else {
-      ToastNotification.show(
-        // ignore: use_build_context_synchronously
-        context,
-        title: 'Error',
-        description:
-            chatProvider.operationError ?? 'No se pudo iniciar el chat.',
-        type: ToastNotificationType.error,
-      );
-    }
-  }
-
   void _handleFavorite(PetEntity pet) {
     // TODO: Implementar favoritos
     ToastNotification.show(
@@ -167,6 +62,12 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       description: 'Sistema de favoritos próximamente.',
       type: ToastNotificationType.info,
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -252,12 +153,12 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               const SizedBox(height: 8),
               Text(
                 errorMessage ?? 'Error desconocido',
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _loadPetDetails,
+                onPressed: () => _petProvider.loadPetById(widget.petId),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -368,18 +269,14 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   PetDescription(pet: pet),
                   const SizedBox(height: 20),
                   OwnerInfoCard(ownerId: pet.ownerId),
-                  const SizedBox(height: 200),
+                  const SizedBox(height: 150),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomSheet: ActionButtons(
-        pet: pet,
-        onInterest: () => _handleInterest(pet),
-        onContact: () => _handleContact(pet),
-      ),
+      bottomSheet: ActionButtons(pet: pet),
     );
   }
 }

@@ -22,25 +22,30 @@ class _HomeScreenState extends State<HomeScreen> {
   CarouselSliderController carouselController = CarouselSliderController();
   int currentPetIndex = 0;
 
+  late final PetProvider _petProvider;
+
   String get selectedCategoryName =>
       categories[selectedCategoryIndex].name.toLowerCase();
 
   @override
   void initState() {
     super.initState();
-    // Inicializar tiempo real
+    _initializeProviders();
+  }
+
+  void _initializeProviders() {
+    _petProvider = context.read<PetProvider>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().startRealtimeUpdates();
-      // Iniciar listener para la categoría actual
-      context.read<PetProvider>().startCategoryListener(selectedCategoryName);
+      if (mounted) {
+        _petProvider.startCategoryListener(selectedCategoryName);
+      }
     });
   }
 
   void _onCategorySelected(int index) {
-    final provider = context.read<PetProvider>();
-
     // Detener listener de categoría anterior
-    provider.stopCategoryListener(selectedCategoryName);
+    _petProvider.stopCategoryListener(selectedCategoryName);
 
     setState(() {
       selectedCategoryIndex = index;
@@ -48,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     // Iniciar listener para nueva categoría
-    provider.startCategoryListener(selectedCategoryName);
+    _petProvider.startCategoryListener(selectedCategoryName);
 
     carouselController.animateToPage(
       0,
@@ -58,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _handleRefresh() async {
-    await context.read<PetProvider>().refreshPets();
+    await _petProvider.refreshPets();
   }
 
   @override

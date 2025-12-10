@@ -7,7 +7,6 @@ import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_stats_card.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/user_pets_section.dart';
-import 'package:pet_adoption_app/src/presentation/utils/toast_notification.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 import 'package:provider/provider.dart';
 
@@ -22,36 +21,29 @@ class PublicUserProfileScreen extends StatefulWidget {
 }
 
 class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
+  late final UserProvider _userProvider;
+
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _initializeProviders();
   }
 
-  void _loadUserProfile() {
+  void _initializeProviders() {
+    _userProvider = context.read<UserProvider>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-      final petProvider = context.read<PetProvider>();
-
-      // Cargar perfil del usuario específico
-      userProvider.loadUserProfile(widget.userId);
-
-      // Asegurar que tenemos todas las mascotas cargadas
-      if (petProvider.allPets.isEmpty) {
-        petProvider.startRealtimeUpdates();
+      if (mounted) {
+        _userProvider.loadUserProfile(widget.userId);
       }
     });
   }
 
-  void _handleContactUser(UserEntity user) {
-    // TODO: Implementar navegación al chat
-    ToastNotification.show(
-      context,
-      title: 'Chat próximamente',
-      description:
-          'Pronto podrás contactar a ${user.displayName} directamente.',
-      type: ToastNotificationType.info,
-    );
+  @override
+  void dispose() {
+    _userProvider.clearUserProfile();
+
+    super.dispose();
   }
 
   @override
@@ -91,12 +83,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                   .where((pet) => pet.status == PetStatus.available)
                   .toList();
 
-          return _buildUserProfile(
-            userProfile,
-            availablePets,
-            adoptedPets,
-            petProvider,
-          );
+          return _buildUserProfile(userProfile, availablePets, adoptedPets);
         },
       ),
     );
@@ -160,7 +147,10 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              CustomButton(text: 'Reintentar', onPressed: _loadUserProfile),
+              CustomButton(
+                text: 'Reintentar',
+                onPressed: () => _userProvider.loadUserProfile(widget.userId),
+              ),
             ],
           ),
         ),
@@ -217,15 +207,12 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
     UserEntity userProfile,
     List<PetEntity> availablePets,
     List<PetEntity> adoptedPets,
-    PetProvider petProvider,
   ) {
     final theme = Theme.of(context);
 
     return RefreshIndicator(
       onRefresh: () async {
-        final userProvider = context.read<UserProvider>();
-        await userProvider.loadUserProfile(widget.userId);
-        await petProvider.refreshPets();
+        await _userProvider.loadUserProfile(widget.userId);
       },
       child: CustomScrollView(
         slivers: [
@@ -256,7 +243,7 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                 child: IconButton(
                   onPressed: () => {},
                   color: theme.colorScheme.onPrimary,
-                  icon: Icon(Icons.more_vert),
+                  icon: const Icon(Icons.more_vert),
                 ),
               ),
             ],
@@ -278,8 +265,6 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                     isExperienced: userProfile.isExperienced,
                   ),
                   const SizedBox(height: 20),
-                  _buildContactSection(theme, userProfile),
-                  const SizedBox(height: 20),
                   UserPetsSection(
                     availablePets: availablePets,
                     adoptedPets: adoptedPets,
@@ -294,84 +279,5 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildContactSection(ThemeData theme, UserEntity userProfile) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.connect_without_contact,
-                color: theme.colorScheme.primary,
-                size: 24,
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Conectar',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Enviar Mensaje',
-                  onPressed: () => _handleContactUser(userProfile),
-                  icon: const Icon(Icons.message, size: 20),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: theme.colorScheme.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Al contactar a ${userProfile.displayName}, se iniciará una conversación privada.',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    // Limpiar el perfil del usuario cuando salimos de la pantalla
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<UserProvider>().clearUserProfile();
-      }
-    });
-    super.dispose();
   }
 }

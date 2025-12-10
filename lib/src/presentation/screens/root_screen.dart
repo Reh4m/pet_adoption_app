@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/requests_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/chats/chat_list_screen.dart';
@@ -19,8 +19,15 @@ class RootScreen extends StatefulWidget {
 
 class _RootScreenState extends State<RootScreen> {
   final PageController _pageController = PageController();
-
   int _currentIndex = 0;
+
+  late final UserProvider _userProvider;
+  late final PetProvider _petProvider;
+  late final AdoptionRequestProvider _adoptionProvider;
+  late final ChatProvider _chatProvider;
+
+  VoidCallback? _userListenerCallback;
+  String? _currentUserId;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -32,48 +39,51 @@ class _RootScreenState extends State<RootScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Inicializar providers después de que el widget se construya
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userProvider = context.read<UserProvider>();
-
-      // Inicializar listener del usuario
-      userProvider.startCurrentUserListener();
-
-      // Inicializar listeners de solicitudes de adopción
-      _initializeAdoptionRequestListeners(userProvider);
-    });
+    _initializeProviders();
   }
 
-  void _initializeAdoptionRequestListeners(UserProvider userProvider) {
-    final adoptionProvider = context.read<AdoptionRequestProvider>();
-    final chatProvider = context.read<ChatProvider>();
+  void _initializeProviders() {
+    _userProvider = context.read<UserProvider>();
+    _petProvider = context.read<PetProvider>();
+    _adoptionProvider = context.read<AdoptionRequestProvider>();
+    _chatProvider = context.read<ChatProvider>();
 
-    // Escuchar cambios en el usuario actual
-    userProvider.addListener(() {
-      final currentUser = userProvider.currentUser;
+    // Inicializar listener del usuario
+    // _userProvider.startCurrentUserListener();
 
-      if (currentUser != null) {
-        // Iniciar listeners de solicitudes solo cuando tengamos un usuario
-        adoptionProvider.startReceivedRequestsListener(currentUser.id);
-        adoptionProvider.startSentRequestsListener(currentUser.id);
-        // Iniciar listeners de chat
-        chatProvider.startUserChatsListener(currentUser.id);
-        chatProvider.loadUnreadMessagesCount(currentUser.id);
-      } else {
-        // Detener listeners si el usuario se desloguea
-        adoptionProvider.stopAllListeners();
-        chatProvider.stopUserChatsListener();
-      }
-    });
+    // Crear y agregar el listener callback
+    _userListenerCallback = _onUserChanged;
+    _userProvider.addListener(_userListenerCallback!);
 
-    // Si ya tenemos un usuario actual, inicializar inmediatamente
-    final currentUser = userProvider.currentUser;
+    // Verificar usuario inicial
+    _onUserChanged();
+  }
+
+  void _onUserChanged() {
+    final currentUser = _userProvider.currentUser;
+    final newUserId = currentUser?.id;
+
+    // Solo actualizar si el usuario cambió
+    if (newUserId == _currentUserId) return;
+
+    // Detener listeners anteriores si había un usuario
+    if (_currentUserId != null) {
+      _petProvider.stopAllPetsListener();
+      _adoptionProvider.stopAllListeners();
+      _chatProvider.stopUserChatsListener();
+      _chatProvider.stopAllMessageListeners();
+    }
+
+    // Actualizar el ID del usuario actual
+    _currentUserId = newUserId;
+
+    // Iniciar nuevos listeners si hay usuario
     if (currentUser != null) {
-      adoptionProvider.startReceivedRequestsListener(currentUser.id);
-      adoptionProvider.startSentRequestsListener(currentUser.id);
-      chatProvider.startUserChatsListener(currentUser.id);
-      chatProvider.loadUnreadMessagesCount(currentUser.id);
+      _petProvider.startAllPetsListener();
+      _adoptionProvider.startReceivedRequestsListener(currentUser.id);
+      _adoptionProvider.startSentRequestsListener(currentUser.id);
+      _chatProvider.startUserChatsListener(currentUser.id);
+      _chatProvider.loadUnreadMessagesCount(currentUser.id);
     }
   }
 
@@ -87,12 +97,17 @@ class _RootScreenState extends State<RootScreen> {
 
   @override
   void dispose() {
+    if (_userListenerCallback != null) {
+      _userProvider.removeListener(_userListenerCallback!);
+    }
+
+    _petProvider.stopAllPetsListener();
+    _adoptionProvider.stopAllListeners();
+    _chatProvider.stopUserChatsListener();
+    _chatProvider.stopAllMessageListeners();
+
     _pageController.dispose();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      di.sl<AdoptionRequestProvider>().stopAllListeners();
-      di.sl<ChatProvider>().stopUserChatsListener();
-      di.sl<UserProvider>().clearCurrentUser();
-    });
+
     super.dispose();
   }
 

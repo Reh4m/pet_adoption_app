@@ -53,6 +53,8 @@ class ChatProvider extends ChangeNotifier {
   StreamSubscription? _userChatsSubscription;
   final Map<String, StreamSubscription> _messageSubscriptions = {};
 
+  bool _isDisposed = false;
+
   ChatState get chatsState => _chatsState;
   ChatState get messagesState => _messagesState;
   ChatState get sendMessageState => _sendMessageState;
@@ -181,18 +183,26 @@ class ChatProvider extends ChangeNotifier {
 
     _messageSubscriptions[chatId] = _getChatMessagesStreamUseCase(
       chatId,
-    ).listen((either) {
-      either.fold(
-        (failure) => _setMessagesError(_mapFailureToMessage(failure)),
-        (messages) async {
-          _chatMessages[chatId] = messages;
+    ).listen(
+      (either) {
+        if (_isDisposed) return;
 
-          await _markAllMessagesAsRead(chatId);
+        either.fold(
+          (failure) => _setMessagesError(_mapFailureToMessage(failure)),
+          (messages) async {
+            _chatMessages[chatId] = messages;
 
-          _setMessagesState(ChatState.success);
-        },
-      );
-    }, onError: (error) => _setMessagesError('Error de conexión: $error'));
+            await _markAllMessagesAsRead(chatId);
+
+            _setMessagesState(ChatState.success);
+          },
+        );
+      },
+      onError: (error) {
+        if (_isDisposed) return;
+        _setMessagesError('Error de conexión: $error');
+      },
+    );
   }
 
   void stopChatMessagesListener(String chatId) {
@@ -244,6 +254,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _markAllMessagesAsRead(String chatId) async {
+    if (_isDisposed) return;
+
     final userId = firebaseAuth.currentUser?.uid;
 
     if (userId == null) return;
@@ -493,6 +505,7 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     stopUserChatsListener();
     stopAllMessageListeners();
     super.dispose();

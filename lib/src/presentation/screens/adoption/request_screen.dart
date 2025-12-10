@@ -32,12 +32,6 @@ class _AdoptionRequestScreenState extends State<AdoptionRequestScreen> {
     _checkExistingRequest();
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
-
   Future<void> _checkExistingRequest() async {
     final userProvider = context.read<UserProvider>();
     final adoptionProvider = context.read<AdoptionRequestProvider>();
@@ -136,6 +130,12 @@ class _AdoptionRequestScreenState extends State<AdoptionRequestScreen> {
       description: description,
       type: type,
     );
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
   }
 
   @override

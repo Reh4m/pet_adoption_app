@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pet_adoption_app/src/core/di/index.dart' as di;
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/chat/message_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
@@ -31,44 +30,29 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final FocusNode _messageFocusNode = FocusNode();
 
+  late final UserProvider _userProvider;
+  late final ChatProvider _chatProvider;
+  late final MediaProvider _mediaProvider;
+
   ChatEntity? _currentChat;
 
   @override
   void initState() {
     super.initState();
-    _initializeChat();
+    _initializeProviders();
   }
 
-  void _initializeChat() {
+  void _initializeProviders() {
+    _userProvider = context.read<UserProvider>();
+    _chatProvider = context.read<ChatProvider>();
+    _mediaProvider = context.read<MediaProvider>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chatProvider = context.read<ChatProvider>();
-
-      _currentChat = widget.chat;
-
-      if (_currentChat != null) {
-        chatProvider.setCurrentChat(_currentChat);
-      } else {
-        chatProvider.loadChatById(widget.chatId);
+      if (mounted) {
+        _chatProvider.loadChatById(widget.chatId);
+        _chatProvider.startChatMessagesListener(widget.chatId);
       }
-
-      // Iniciar listener de mensajes
-      chatProvider.startChatMessagesListener(widget.chatId);
     });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _messageController.dispose();
-    _messageFocusNode.dispose();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('Disposing ChatScreen for chatId: ${widget.chatId}');
-      di.sl<ChatProvider>().stopChatMessagesListener(widget.chatId);
-      di.sl<ChatProvider>().clearCurrentChat();
-    });
-
-    super.dispose();
   }
 
   void _scrollToBottom() {
@@ -87,9 +71,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final messageText = _messageController.text.trim();
     if (messageText.isEmpty) return;
 
-    final userProvider = context.read<UserProvider>();
-    final chatProvider = context.read<ChatProvider>();
-    final currentUser = userProvider.currentUser;
+    final currentUser = _userProvider.currentUser;
 
     if (currentUser == null) {
       ToastNotification.show(
@@ -104,7 +86,7 @@ class _ChatScreenState extends State<ChatScreen> {
     // Limpiar el campo de texto inmediatamente
     _messageController.clear();
 
-    final success = await chatProvider.sendMessage(
+    final success = await _chatProvider.sendMessage(
       chatId: widget.chatId,
       senderId: currentUser.id,
       senderName: currentUser.displayName,
@@ -123,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
           context,
           title: 'Error al enviar',
           description:
-              chatProvider.sendMessageError ?? 'No se pudo enviar el mensaje.',
+              _chatProvider.sendMessageError ?? 'No se pudo enviar el mensaje.',
           type: ToastNotificationType.error,
         );
       }
@@ -166,23 +148,22 @@ class _ChatScreenState extends State<ChatScreen> {
     required MediaType mediaType,
     required String caption,
   }) async {
-    final currentUserId = context.read<UserProvider>().currentUser?.id;
+    final currentUserId = _userProvider.currentUser?.id;
     if (currentUserId == null) return;
 
-    final mediaProvider = context.read<MediaProvider>();
     String? mediaUrl;
 
     // Subir el archivo según su tipo
     switch (mediaType) {
       case MediaType.image:
-        mediaUrl = await mediaProvider.uploadImage(
+        mediaUrl = await _mediaProvider.uploadImage(
           image: file,
           chatId: widget.chatId,
           senderId: currentUserId,
         );
         break;
       case MediaType.video:
-        mediaUrl = await mediaProvider.uploadVideo(
+        mediaUrl = await _mediaProvider.uploadVideo(
           video: file,
           chatId: widget.chatId,
           senderId: currentUserId,
@@ -193,16 +174,13 @@ class _ChatScreenState extends State<ChatScreen> {
     if (mediaUrl == null && mounted) {
       _showToast(
         title: 'Error',
-        description: mediaProvider.error ?? 'No se pudo subir el archivo',
+        description: _mediaProvider.error ?? 'No se pudo subir el archivo',
         type: ToastNotificationType.error,
       );
       return;
     }
 
-    // Crear y enviar mensaje
-    final userProvider = context.read<UserProvider>();
-    final chatProvider = context.read<ChatProvider>();
-    final currentUser = userProvider.currentUser;
+    final currentUser = _userProvider.currentUser;
 
     if (currentUser == null) {
       ToastNotification.show(
@@ -217,7 +195,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final mediaTypeString = _getMediaTypeString(mediaType);
     final messageContent = caption.isNotEmpty ? caption : mediaTypeString;
 
-    final success = await chatProvider.sendMessage(
+    final success = await _chatProvider.sendMessage(
       chatId: widget.chatId,
       senderId: currentUserId,
       senderName: currentUser.displayName,
@@ -231,7 +209,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _showToast(
         title: 'Error',
         description:
-            chatProvider.operationError ?? 'No se pudo enviar el mensaje',
+            _chatProvider.operationError ?? 'No se pudo enviar el mensaje',
         type: ToastNotificationType.error,
       );
     }
@@ -266,6 +244,17 @@ class _ChatScreenState extends State<ChatScreen> {
       description: description,
       type: type,
     );
+  }
+
+  @override
+  void dispose() {
+    _chatProvider.stopChatMessagesListener(widget.chatId);
+
+    _scrollController.dispose();
+    _messageController.dispose();
+    _messageFocusNode.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -330,7 +319,7 @@ class _ChatScreenState extends State<ChatScreen> {
             );
           }
 
-          final currentUserId = context.read<UserProvider>().currentUser?.id;
+          final currentUserId = _userProvider.currentUser?.id;
 
           if (currentUserId == null) {
             return Text(
@@ -591,7 +580,7 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     final messages = chatProvider.getChatMessages(widget.chatId);
-    final currentUserId = context.read<UserProvider>().currentUser?.id;
+    final currentUserId = _userProvider.currentUser?.id;
 
     if (messages.isEmpty) {
       return Center(

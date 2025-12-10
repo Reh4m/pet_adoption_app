@@ -86,25 +86,11 @@ class _OwnerInfoCardState extends State<OwnerInfoCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              isCurrentUser ? 'Tu información' : 'Dueño actual',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (!isCurrentUser && _ownerData != null)
-              TextButton.icon(
-                onPressed: _navigateToOwnerProfile,
-                icon: const Icon(Icons.person, size: 16),
-                label: const Text('Ver perfil'),
-                style: TextButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
-                ),
-              ),
-          ],
+        Text(
+          isCurrentUser ? 'Tu información' : 'Dueño actual',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 10),
         _buildOwnerCard(theme, isCurrentUser),
@@ -200,7 +186,7 @@ class _OwnerInfoCardState extends State<OwnerInfoCard> {
           _buildOwnerBadges(theme),
           if (!isCurrentUser) ...[
             const SizedBox(height: 15),
-            _buildContactButton(theme),
+            _buildUserProfileButton(theme),
           ],
         ],
       ),
@@ -472,13 +458,13 @@ class _OwnerInfoCardState extends State<OwnerInfoCard> {
     );
   }
 
-  Widget _buildContactButton(ThemeData theme) {
+  Widget _buildUserProfileButton(ThemeData theme) {
     return CustomButton(
-      text: 'Contactar',
+      text: 'Ver Perfil',
       onPressed: _navigateToOwnerProfile,
       variant: ButtonVariant.outline,
       width: double.infinity,
-      icon: const Icon(Icons.message, size: 20),
+      icon: const Icon(Icons.person, size: 20),
     );
   }
 

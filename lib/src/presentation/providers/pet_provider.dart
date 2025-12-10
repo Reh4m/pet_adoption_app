@@ -44,7 +44,7 @@ class PetProvider extends ChangeNotifier {
     return List.from(_petsByCategory[category] ?? []);
   }
 
-  void _startAllPetsListener() {
+  void startAllPetsListener() {
     _setState(PetState.loading);
 
     _allPetsSubscription = _getAllPetsUseCase().listen((either) {
@@ -52,17 +52,13 @@ class PetProvider extends ChangeNotifier {
         pets,
       ) {
         _allPets = pets;
-        _setState(PetState.success);
         _organizePetsByCategory();
+        _setState(PetState.success);
       });
     }, onError: (error) => _setError('Error de conexión: $error'));
   }
 
-  void startRealtimeUpdates() {
-    _startAllPetsListener();
-  }
-
-  void stopRealtimeUpdates() {
+  void stopAllPetsListener() {
     _allPetsSubscription?.cancel();
     for (final subscription in _categorySubscriptions.values) {
       subscription.cancel();
@@ -120,7 +116,7 @@ class PetProvider extends ChangeNotifier {
     await loadPetsOnce();
   }
 
-  Future<void> getPetById(String petId) async {
+  Future<void> loadPetById(String petId) async {
     _setState(PetState.loading);
 
     final result = await _getPetByIdUseCase(petId);
@@ -289,7 +285,7 @@ class PetProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    stopRealtimeUpdates();
+    stopAllPetsListener();
     super.dispose();
   }
 }
