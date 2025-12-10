@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pet_adoption_app/src/core/errors/exceptions.dart';
 import 'package:pet_adoption_app/src/data/models/pet/pet_model.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
+import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 
 class FirebasePetService {
   final FirebaseFirestore firestore;
@@ -16,7 +17,7 @@ class FirebasePetService {
     try {
       return firestore
           .collection(_petsCollection)
-          .where('status', isEqualTo: 'available')
+          // .where('status', isEqualTo: 'available')
           .orderBy('createdAt', descending: true)
           .snapshots()
           .map(
@@ -119,6 +120,22 @@ class FirebasePetService {
           .collection(_petsCollection)
           .doc(pet.id)
           .update(updatedPet.toFirestore());
+    } catch (e) {
+      throw ServerException();
+    }
+  }
+
+  Future<void> updatePetForCompletedAdoption({
+    required String petId,
+    required String adoptedByUserId,
+  }) async {
+    try {
+      await firestore.collection(_petsCollection).doc(petId).update({
+        'adoptedBy': adoptedByUserId,
+        'status': PetStatus.adopted.name,
+        'adoptionDate': DateTime.now(),
+        'updatedAt': DateTime.now(),
+      });
     } catch (e) {
       throw ServerException();
     }

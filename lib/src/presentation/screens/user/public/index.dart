@@ -77,7 +77,9 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
                   .toList();
 
           final adoptedPets =
-              userPets.where((pet) => pet.status == PetStatus.adopted).toList();
+              petProvider.allPets
+                  .where((pet) => pet.adoptedBy == widget.userId)
+                  .toList();
 
           final availablePets =
               userPets

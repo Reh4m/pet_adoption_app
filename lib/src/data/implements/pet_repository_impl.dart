@@ -132,6 +132,28 @@ class PetRepositoryImpl implements PetRepository {
   }
 
   @override
+  Future<Either<Failure, Unit>> updatePetForCompletedAdoption({
+    required String petId,
+    required String adoptedByUserId,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure());
+    }
+
+    try {
+      await firebasePetService.updatePetForCompletedAdoption(
+        petId: petId,
+        adoptedByUserId: adoptedByUserId,
+      );
+      return const Right(unit);
+    } on ServerException {
+      return Left(ServerFailure());
+    } catch (e) {
+      return Left(ServerFailure());
+    }
+  }
+
+  @override
   Future<Either<Failure, Unit>> deletePet(String petId) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure());

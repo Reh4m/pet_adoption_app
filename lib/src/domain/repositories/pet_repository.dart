@@ -24,6 +24,11 @@ abstract class PetRepository {
 
   Future<Either<Failure, Unit>> updatePet(PetEntity pet);
 
+  Future<Either<Failure, Unit>> updatePetForCompletedAdoption({
+    required String petId,
+    required String adoptedByUserId,
+  });
+
   Future<Either<Failure, Unit>> deletePet(String petId);
 
   // Búsquedas avanzadas

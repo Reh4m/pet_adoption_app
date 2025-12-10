@@ -183,6 +183,9 @@ Future<void> init() async {
   sl.registerLazySingleton<UpdatePetUseCase>(
     () => UpdatePetUseCase(sl<PetRepository>()),
   );
+  sl.registerLazySingleton<UpdatePetForCompletedAdoptionUseCase>(
+    () => UpdatePetForCompletedAdoptionUseCase(sl<PetRepository>()),
+  );
   sl.registerLazySingleton<DeletePetUseCase>(
     () => DeletePetUseCase(sl<PetRepository>()),
   );

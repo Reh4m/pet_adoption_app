@@ -6,6 +6,8 @@ import 'package:pet_adoption_app/src/domain/entities/adoption_request_entity.dar
 import 'package:pet_adoption_app/src/domain/entities/chat/chat_entity.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 
@@ -33,6 +35,11 @@ class AdoptionRequestProvider extends ChangeNotifier {
       sl<InitiateChatFromAdoptionRequestUseCase>();
   final SendAdoptionStatusUpdateUseCase _sendStatusUpdateUseCase =
       sl<SendAdoptionStatusUpdateUseCase>();
+  final UpdatePetForCompletedAdoptionUseCase
+  _updatePetForCompletedAdoptionUseCase =
+      sl<UpdatePetForCompletedAdoptionUseCase>();
+  final IncrementPetsAdoptedUseCase _incrementPetsAdoptedUseCase =
+      sl<IncrementPetsAdoptedUseCase>();
 
   AdoptionRequestState _state = AdoptionRequestState.initial;
   String? _errorMessage;
@@ -201,7 +208,12 @@ class AdoptionRequestProvider extends ChangeNotifier {
     );
   }
 
-  Future<bool> completeRequest(String requestId, {String? notes}) async {
+  Future<bool> completeRequest(
+    String requestId, {
+    required String petId,
+    required String adoptedByUserId,
+    String? notes,
+  }) async {
     _setResponseState(AdoptionRequestState.loading);
 
     final result = await _completeRequestUseCase(requestId, notes: notes);
@@ -211,7 +223,12 @@ class AdoptionRequestProvider extends ChangeNotifier {
         _setResponseError(_mapFailureToMessage(failure));
         return false;
       },
-      (_) {
+      (_) async {
+        await _updatePetForCompletedAdoptionUseCase(
+          petId: petId,
+          adoptedByUserId: adoptedByUserId,
+        );
+        await _incrementPetsAdoptedUseCase(adoptedByUserId);
         _setResponseState(AdoptionRequestState.success);
         return true;
       },

@@ -55,6 +55,22 @@ class UpdatePetUseCase {
   }
 }
 
+class UpdatePetForCompletedAdoptionUseCase {
+  final PetRepository repository;
+
+  UpdatePetForCompletedAdoptionUseCase(this.repository);
+
+  Future<Either<Failure, Unit>> call({
+    required String petId,
+    required String adoptedByUserId,
+  }) async {
+    return await repository.updatePetForCompletedAdoption(
+      petId: petId,
+      adoptedByUserId: adoptedByUserId,
+    );
+  }
+}
+
 class DeletePetUseCase {
   final PetRepository repository;
 

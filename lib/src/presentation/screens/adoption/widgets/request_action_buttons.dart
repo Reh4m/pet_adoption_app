@@ -424,6 +424,8 @@ class RequestActionButtons extends StatelessWidget {
 
       final success = await provider.completeRequest(
         request.id,
+        petId: request.petId,
+        adoptedByUserId: request.requesterId,
         notes:
             notesController.text.trim().isNotEmpty
                 ? notesController.text

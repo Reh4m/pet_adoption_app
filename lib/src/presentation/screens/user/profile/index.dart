@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
@@ -296,12 +295,7 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
                   .toList();
 
           final adoptedPets =
-              userPets.where((pet) => pet.status == PetStatus.adopted).toList();
-
-          final availablePets =
-              userPets
-                  .where((pet) => pet.status == PetStatus.available)
-                  .toList();
+              userPets.where((pet) => pet.adoptedBy == currentUser.id).toList();
 
           return LoadingOverlay(
             isLoading: userProvider.operationState == UserState.loading,
@@ -429,7 +423,7 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
                     ];
                   },
                   body: UserPetsSection(
-                    availablePets: availablePets,
+                    availablePets: userPets,
                     adoptedPets: adoptedPets,
                     isCurrentUser: true,
                     onPetTap: (pet) {
