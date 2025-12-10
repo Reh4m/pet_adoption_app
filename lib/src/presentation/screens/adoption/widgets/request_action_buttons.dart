@@ -56,7 +56,7 @@ class RequestActionButtons extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Solicitud aceptada - Chat disponible',
+                  'Solicitud aceptada',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
@@ -67,24 +67,23 @@ class RequestActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: CustomButton(
-                text: 'Abrir Chat',
-                onPressed: () => _openChat(context),
-                icon: const Icon(Icons.chat_bubble, size: 20),
-              ),
+            CustomButton(
+              text: 'Abrir Chat',
+              onPressed: () => _openChat(context),
+              width: double.infinity,
+              icon: const Icon(Icons.chat_bubble, size: 20),
             ),
             if (isReceived) ...[
-              const SizedBox(width: 12),
-              Expanded(
-                child: CustomButton(
-                  text: 'Completar',
-                  onPressed: () => _completeAdoption(context),
-                  variant: ButtonVariant.outline,
-                  icon: const Icon(Icons.task_alt, size: 20),
-                ),
+              const SizedBox(height: 12),
+              CustomButton(
+                text: 'Completar',
+                onPressed: () => _completeAdoption(context),
+                variant: ButtonVariant.outline,
+                width: double.infinity,
+                icon: const Icon(Icons.task_alt, size: 20),
               ),
             ],
           ],
@@ -94,23 +93,22 @@ class RequestActionButtons extends StatelessWidget {
   }
 
   Widget _buildPendingReceivedActions(BuildContext context, ThemeData theme) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: CustomButton(
-            text: 'Rechazar',
-            onPressed: () => _showRejectDialog(context),
-            variant: ButtonVariant.outline,
-            icon: const Icon(Icons.close, size: 20),
-          ),
+        CustomButton(
+          text: 'Aceptar',
+          onPressed: () => _showAcceptDialog(context),
+          width: double.infinity,
+          icon: const Icon(Icons.check, size: 20),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: CustomButton(
-            text: 'Aceptar',
-            onPressed: () => _showAcceptDialog(context),
-            icon: const Icon(Icons.check, size: 20),
-          ),
+        const SizedBox(height: 12),
+        CustomButton(
+          text: 'Rechazar',
+          onPressed: () => _showRejectDialog(context),
+          variant: ButtonVariant.outline,
+          width: double.infinity,
+          icon: const Icon(Icons.close, size: 20),
         ),
       ],
     );
