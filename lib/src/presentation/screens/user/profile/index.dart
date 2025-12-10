@@ -7,7 +7,6 @@ import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
-import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_stats_card.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/user_pets_section.dart';
 import 'package:pet_adoption_app/src/presentation/utils/toast_notification.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_alert_dialog.dart';
@@ -258,7 +257,7 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
             );
           }
 
-          if (hasError && currentUser == null) {
+          if (hasError || currentUser == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -291,10 +290,6 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
             );
           }
 
-          if (currentUser == null) {
-            return const Center(child: Text('Usuario no encontrado'));
-          }
-
           final userPets =
               petProvider.allPets
                   .where((pet) => pet.ownerId == currentUser.id)
@@ -316,103 +311,132 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
                 await userProvider.loadCurrentUser();
                 await petProvider.refreshPets();
               },
-              child: CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    expandedHeight: 320,
-                    pinned: true,
-                    actions: [
-                      PopupMenuButton<String>(
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'edit':
-                              _handleEditProfile();
-                              break;
-                            case 'settings':
-                              _handleEditUserSettings();
-                              break;
-                            case 'signout':
-                              _handleSignOut();
-                              break;
-                          }
-                        },
-                        itemBuilder:
-                            (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.edit),
-                                    SizedBox(width: 10),
-                                    Text('Editar perfil'),
-                                  ],
-                                ),
-                              ),
-                              const PopupMenuItem(
-                                value: 'settings',
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.settings),
-                                    SizedBox(width: 10),
-                                    Text('Configuraciones'),
-                                  ],
-                                ),
-                              ),
-                              PopupMenuItem(
-                                value: 'signout',
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.logout,
-                                      color: theme.colorScheme.error,
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      'Cerrar sesión',
-                                      style: TextStyle(
-                                        color: theme.colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                      ),
-                    ],
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: ProfileHeader(
-                        user: currentUser,
-                        isCurrentUser: true,
-                        onChangePhoto: _handleChangeProfilePhoto,
-                      ),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          ProfileStatsCard(
-                            petsPosted: currentUser.petsPosted,
-                            petsAdopted: currentUser.petsAdopted,
-                            isExperienced: currentUser.isExperienced,
+              child: DefaultTabController(
+                length: 2,
+                child: NestedScrollView(
+                  headerSliverBuilder: (context, value) {
+                    return [
+                      SliverAppBar(
+                        pinned: true,
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        title: Text(
+                          'Perfil',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onPrimary,
                           ),
-                          const SizedBox(height: 20),
-                          UserPetsSection(
-                            availablePets: availablePets,
-                            adoptedPets: adoptedPets,
-                            isCurrentUser: true,
-                            onPetTap: (pet) => context.push('/pets/${pet.id}'),
+                        ),
+                        centerTitle: true,
+                        actions: [
+                          PopupMenuButton<String>(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                            onSelected: (value) {
+                              switch (value) {
+                                case 'edit':
+                                  _handleEditProfile();
+                                  break;
+                                case 'settings':
+                                  _handleEditUserSettings();
+                                  break;
+                                case 'signout':
+                                  _handleSignOut();
+                                  break;
+                              }
+                            },
+
+                            itemBuilder:
+                                (context) => [
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.edit,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Text('Editar perfil'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'settings',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.settings,
+                                          color: theme.colorScheme.onSurface,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Text('Configuración'),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'signout',
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.logout,
+                                          color: theme.colorScheme.error,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          'Cerrar sesión',
+                                          style: TextStyle(
+                                            color: theme.colorScheme.error,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                           ),
                         ],
                       ),
-                    ),
+                      SliverToBoxAdapter(
+                        child: ProfileHeader(
+                          user: currentUser,
+                          isCurrentUser: true,
+                          onChangePhoto: _handleChangeProfilePhoto,
+                        ),
+                      ),
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: SliverTabBarDelegate(
+                          TabBar(
+                            labelColor: theme.colorScheme.primary,
+                            unselectedLabelColor: theme.colorScheme.onSurface,
+                            indicatorColor: theme.colorScheme.primary,
+                            dividerColor: Colors.transparent,
+                            isScrollable: true,
+                            tabAlignment: TabAlignment.center,
+                            labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            unselectedLabelStyle: theme.textTheme.bodyMedium,
+                            tabs: [
+                              const Tab(child: Text('Publicaciones')),
+                              const Tab(child: Text('Adopciones')),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ];
+                  },
+                  body: UserPetsSection(
+                    availablePets: availablePets,
+                    adoptedPets: adoptedPets,
+                    isCurrentUser: true,
+                    onPetTap: (pet) {
+                      context.push('/pets/${pet.id}', extra: {'pet': pet});
+                    },
                   ),
-                ],
+                ),
               ),
             ),
           );
@@ -420,4 +444,30 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
       ),
     );
   }
+}
+
+class SliverTabBarDelegate extends SliverPersistentHeaderDelegate {
+  final TabBar tabBar;
+
+  SliverTabBarDelegate(this.tabBar);
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final theme = Theme.of(context);
+
+    return Container(color: theme.cardColor, child: tabBar);
+  }
+
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+
+  @override
+  bool shouldRebuild(SliverTabBarDelegate oldDelegate) => false;
 }

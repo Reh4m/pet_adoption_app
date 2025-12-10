@@ -52,14 +52,17 @@ class AppTheme {
       foregroundColor: ColorPalette.greyDarken3,
       centerTitle: true,
     ),
-    tabBarTheme: const TabBarTheme(
-      labelColor: LightTheme.primaryColor,
-      indicatorColor: LightTheme.primaryColor,
-      unselectedLabelColor: LightTheme.secondaryTextColor,
-      indicatorSize: TabBarIndicatorSize.label,
-      dividerHeight: 0.5,
-      dividerColor: ColorPalette.greyLighten1,
-    ),
+    // tabBarTheme: const TabBarTheme(
+    //   labelColor: LightTheme.primaryColor,
+    //   indicatorColor: LightTheme.primaryColor,
+    //   unselectedLabelColor: ColorPalette.greyDarken3,
+    //   indicatorSize: TabBarIndicatorSize.label,
+    //   dividerHeight: 0,
+    //   dividerColor: Colors.transparent,
+    //   labelStyle: TextStyle(
+    //     fontWeight: FontWeight.w600,
+    //   ),
+    // ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: LightTheme.primaryColor,
       foregroundColor: LightTheme.onPrimaryColor,
@@ -98,14 +101,14 @@ class AppTheme {
       foregroundColor: ColorPalette.greyLighten4,
       centerTitle: true,
     ),
-    tabBarTheme: const TabBarTheme(
-      labelColor: DarkTheme.primaryColor,
-      indicatorColor: DarkTheme.primaryColor,
-      unselectedLabelColor: DarkTheme.secondaryTextColor,
-      indicatorSize: TabBarIndicatorSize.label,
-      dividerHeight: 0.5,
-      dividerColor: ColorPalette.greyDarken3,
-    ),
+    // tabBarTheme: const TabBarTheme(
+    //   labelColor: DarkTheme.primaryColor,
+    //   indicatorColor: DarkTheme.primaryColor,
+    //   unselectedLabelColor: DarkTheme.secondaryTextColor,
+    //   indicatorSize: TabBarIndicatorSize.label,
+    //   dividerHeight: 0.5,
+    //   dividerColor: ColorPalette.greyDarken3,
+    // ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       backgroundColor: LightTheme.primaryColor,
       foregroundColor: LightTheme.onPrimaryColor,

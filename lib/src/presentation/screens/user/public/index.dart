@@ -4,8 +4,9 @@ import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
+import 'package:pet_adoption_app/src/presentation/screens/user/profile/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
-import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_stats_card.dart';
+// import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_stats_card.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/user_pets_section.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 import 'package:provider/provider.dart';
@@ -214,69 +215,64 @@ class _PublicUserProfileScreenState extends State<PublicUserProfileScreen> {
       onRefresh: () async {
         await _userProvider.loadUserProfile(widget.userId);
       },
-      child: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 320,
-            pinned: true,
-            leading: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                onPressed: () => context.pop(),
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: theme.colorScheme.onPrimary,
-                ),
-              ),
-            ),
-            actions: [
-              Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: IconButton(
-                  onPressed: () => {},
-                  color: theme.colorScheme.onPrimary,
-                  icon: const Icon(Icons.more_vert),
-                ),
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: ProfileHeader(
-                user: userProfile,
-                isCurrentUser: false,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  ProfileStatsCard(
-                    petsPosted: userProfile.petsPosted,
-                    petsAdopted: userProfile.petsAdopted,
-                    isExperienced: userProfile.isExperienced,
+      child: DefaultTabController(
+        length: 2,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, value) {
+            return [
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: theme.colorScheme.primary,
+                foregroundColor: theme.colorScheme.onPrimary,
+                leading: IconButton(
+                  onPressed: () => context.pop(),
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: theme.colorScheme.onPrimary,
                   ),
-                  const SizedBox(height: 20),
-                  UserPetsSection(
-                    availablePets: availablePets,
-                    adoptedPets: adoptedPets,
-                    isCurrentUser: false,
-                    onPetTap: (pet) => context.push('/pets/${pet.id}'),
+                ),
+                title: Text(
+                  'Perfil',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.onPrimary,
                   ),
-                  const SizedBox(height: 20),
-                ],
+                ),
+                centerTitle: true,
               ),
-            ),
+              SliverToBoxAdapter(child: ProfileHeader(user: userProfile)),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: SliverTabBarDelegate(
+                  TabBar(
+                    labelColor: theme.colorScheme.primary,
+                    unselectedLabelColor: theme.colorScheme.onSurface,
+                    indicatorColor: theme.colorScheme.primary,
+                    dividerColor: Colors.transparent,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.center,
+                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    unselectedLabelStyle: theme.textTheme.bodyMedium,
+                    tabs: [
+                      const Tab(child: Text('Publicaciones')),
+                      const Tab(child: Text('Adopciones')),
+                    ],
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: UserPetsSection(
+            availablePets: availablePets,
+            adoptedPets: adoptedPets,
+            isCurrentUser: false,
+            onPetTap: (pet) {
+              context.push('/pets/${pet.id}', extra: {'pet': pet});
+            },
           ),
-        ],
+        ),
       ),
     );
   }

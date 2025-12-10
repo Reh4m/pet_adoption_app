@@ -100,15 +100,15 @@ class UserPetCard extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          '${pet.breed} • ${pet.ageString}',
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withAlpha(150),
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        // const SizedBox(height: 4),
+        // Text(
+        //   '${pet.breed} • ${pet.ageString}',
+        //   style: theme.textTheme.bodySmall?.copyWith(
+        //     color: theme.colorScheme.onSurface.withAlpha(150),
+        //   ),
+        //   maxLines: 1,
+        //   overflow: TextOverflow.ellipsis,
+        // ),
       ],
     );
   }

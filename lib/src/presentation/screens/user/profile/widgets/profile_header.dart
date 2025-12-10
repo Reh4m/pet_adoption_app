@@ -18,34 +18,19 @@ class ProfileHeader extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withAlpha(180),
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20, bottom: 40, left: 0, right: 0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildProfileImage(theme),
+            const SizedBox(height: 20),
+            _buildUserInfo(theme),
+            if (user.hasBio) ...[const SizedBox(height: 20), _buildBio(theme)],
+            const SizedBox(height: 20),
+            _buildUserBadges(theme),
           ],
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildProfileImage(theme),
-              const SizedBox(height: 10),
-              _buildUserInfo(theme),
-              if (user.hasBio) ...[
-                const SizedBox(height: 20),
-                _buildBio(theme),
-              ],
-              const SizedBox(height: 20),
-              _buildUserBadges(theme),
-            ],
-          ),
         ),
       ),
     );
@@ -160,23 +145,18 @@ class ProfileHeader extends StatelessWidget {
       children: [
         _buildBadge(
           theme,
-          icon: user.isVerified ? Icons.verified : Icons.warning,
-          label: user.isVerified ? 'Verificado' : 'Sin verificar',
+          icon: Icons.pets,
+          label:
+              '${user.petsPosted} ${user.petsPosted == 1 ? 'Publicado' : 'Publicados'}',
           color: theme.colorScheme.onPrimary,
         ),
         _buildBadge(
           theme,
-          icon: user.isGoogleProvider ? Icons.g_mobiledata : Icons.email,
-          label: user.isGoogleProvider ? 'Google' : 'Email',
+          icon: Icons.favorite,
+          label:
+              '${user.petsAdopted} ${user.petsAdopted == 1 ? 'Adoptado' : 'Adoptados'}',
           color: theme.colorScheme.onPrimary,
         ),
-        if (user.isExperienced)
-          _buildBadge(
-            theme,
-            icon: Icons.pets,
-            label: 'Experimentado',
-            color: theme.colorScheme.onPrimary,
-          ),
       ],
     );
   }
