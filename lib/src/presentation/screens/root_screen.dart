@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 import 'package:pet_adoption_app/src/presentation/providers/adoption_request_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/chat_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/notification_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/adoption/requests_screen.dart';
@@ -48,6 +49,7 @@ class _RootScreenState extends State<RootScreen> {
     _adoptionProvider = context.read<AdoptionRequestProvider>();
     _chatProvider = context.read<ChatProvider>();
 
+    // TODO:
     // Inicializar listener del usuario
     // _userProvider.startCurrentUserListener();
 
@@ -84,6 +86,16 @@ class _RootScreenState extends State<RootScreen> {
       _adoptionProvider.startSentRequestsListener(currentUser.id);
       _chatProvider.startUserChatsListener(currentUser.id);
       _chatProvider.loadUnreadMessagesCount(currentUser.id);
+      _registerNotificationToken(currentUser.id);
+    }
+  }
+
+  void _registerNotificationToken(String userId) {
+    try {
+      final notificationProvider = context.read<NotificationProvider>();
+      notificationProvider.onUserLogin(userId);
+    } catch (e) {
+      debugPrint('Error al registrar token FCM: $e');
     }
   }
 

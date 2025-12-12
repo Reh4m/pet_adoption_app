@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:pet_adoption_app/src/core/network/network_info.dart';
@@ -8,11 +10,13 @@ import 'package:pet_adoption_app/src/data/implements/adoption_request_respositor
 import 'package:pet_adoption_app/src/data/implements/authentication_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/chat_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/media_repository_impl.dart';
+import 'package:pet_adoption_app/src/data/implements/notification_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/pet_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/implements/user_repository_impl.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/adoption_requests_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/authentication_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/chat_service.dart';
+import 'package:pet_adoption_app/src/data/sources/firebase/notification_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/pet_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/storage_service.dart';
 import 'package:pet_adoption_app/src/data/sources/firebase/user_service.dart';
@@ -20,6 +24,7 @@ import 'package:pet_adoption_app/src/domain/repositories/adoption_requests_repos
 import 'package:pet_adoption_app/src/domain/repositories/authentication_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/chat_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/media_repository.dart';
+import 'package:pet_adoption_app/src/domain/repositories/notification_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/pet_repository.dart';
 import 'package:pet_adoption_app/src/domain/repositories/user_repository.dart';
 import 'package:pet_adoption_app/src/domain/usecases/adoption_integration_usecases.dart';
@@ -27,6 +32,7 @@ import 'package:pet_adoption_app/src/domain/usecases/adoption_requests_usecases.
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/chat_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/media_usecases.dart';
+import 'package:pet_adoption_app/src/domain/usecases/notification_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/pets_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
 
@@ -41,6 +47,12 @@ Future<void> init() async {
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
   sl.registerLazySingleton<FirebaseStorage>(() => FirebaseStorage.instance);
+  sl.registerLazySingleton<FirebaseMessaging>(() => FirebaseMessaging.instance);
+
+  // Flutter Local Notifications Plugin
+  sl.registerLazySingleton<FlutterLocalNotificationsPlugin>(
+    () => FlutterLocalNotificationsPlugin(),
+  );
 
   /* Core */
   // Network
@@ -84,6 +96,15 @@ Future<void> init() async {
   // Firebase Chat Service
   sl.registerLazySingleton<FirebaseChatService>(
     () => FirebaseChatService(firestore: sl<FirebaseFirestore>()),
+  );
+
+  // Firebase Notification Service
+  sl.registerLazySingleton<FirebaseNotificationService>(
+    () => FirebaseNotificationService(
+      firebaseMessaging: sl<FirebaseMessaging>(),
+      firestore: sl<FirebaseFirestore>(),
+      localNotificationsPlugin: sl<FlutterLocalNotificationsPlugin>(),
+    ),
   );
 
   /* Repositories */
@@ -133,6 +154,13 @@ Future<void> init() async {
   sl.registerLazySingleton<MediaRepository>(
     () => MediaRepositoryImpl(
       storageService: sl<FirebaseStorageService>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepositoryImpl(
+      messagingService: sl<FirebaseNotificationService>(),
       networkInfo: sl<NetworkInfo>(),
     ),
   );
@@ -385,5 +413,40 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<ValidateVideoSizeUseCase>(
     () => ValidateVideoSizeUseCase(sl<MediaRepository>()),
+  );
+
+  // Notification Use Cases
+  sl.registerLazySingleton<InitializeNotificationsUseCase>(
+    () => InitializeNotificationsUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<RequestNotificationPermissionUseCase>(
+    () => RequestNotificationPermissionUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<GetAndSaveTokenUseCase>(
+    () => GetAndSaveTokenUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<RemoveNotificationTokenUseCase>(
+    () => RemoveNotificationTokenUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<GetInitialMessageUseCase>(
+    () => GetInitialMessageUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<ShowLocalNotificationUseCase>(
+    () => ShowLocalNotificationUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<SubscribeToTopicUseCase>(
+    () => SubscribeToTopicUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<UnsubscribeFromTopicUseCase>(
+    () => UnsubscribeFromTopicUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<GetTokenRefreshStreamUseCase>(
+    () => GetTokenRefreshStreamUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<GetForegroundMessageStreamUseCase>(
+    () => GetForegroundMessageStreamUseCase(sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<GetMessageOpenedAppStreamUseCase>(
+    () => GetMessageOpenedAppStreamUseCase(sl<NotificationRepository>()),
   );
 }

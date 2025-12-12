@@ -8,6 +8,7 @@ import 'package:pet_adoption_app/src/core/errors/failures.dart';
 import 'package:pet_adoption_app/src/domain/entities/user_entity.dart';
 import 'package:pet_adoption_app/src/domain/usecases/authentication_usecases.dart';
 import 'package:pet_adoption_app/src/domain/usecases/user_usecases.dart';
+import 'package:pet_adoption_app/src/presentation/providers/notification_provider.dart';
 
 enum UserState { initial, loading, success, error }
 
@@ -195,6 +196,13 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     _setCurrentUserState(UserState.loading);
+
+    if (_currentUser != null) {
+      try {
+        final notificationProvider = sl<NotificationProvider>();
+        await notificationProvider.onUserLogout(_currentUser!.id);
+      } catch (e) {}
+    }
 
     final result = await _signOutUseCase();
 

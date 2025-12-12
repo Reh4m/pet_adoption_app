@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:pet_adoption_app/src/presentation/providers/notification_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/widgets/profile_header.dart';
@@ -212,7 +213,11 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
   }
 
   Future<void> _signOut() async {
-    await context.read<UserProvider>().signOut();
+    final userProvider = context.read<UserProvider>();
+    await context.read<NotificationProvider>().onUserLogout(
+      userProvider.currentUser!.id,
+    );
+    await userProvider.signOut();
 
     if (mounted) {
       context.go('/login');
