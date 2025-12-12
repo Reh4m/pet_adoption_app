@@ -6,6 +6,8 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Secrets Gradle Plugin
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -32,6 +34,11 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+
+    secrets {
+        propertiesFileName = "secrets.properties"
+    }
+
 
     buildTypes {
         release {

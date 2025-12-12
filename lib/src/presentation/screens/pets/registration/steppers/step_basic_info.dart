@@ -125,7 +125,7 @@ class _StepBasicInfoState extends State<StepBasicInfo> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Tipo de animal *',
+          'Tipo de mascota *',
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),

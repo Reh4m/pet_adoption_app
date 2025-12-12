@@ -158,6 +158,12 @@ class _StepMedicalBehaviorState extends State<StepMedicalBehavior> {
 
                 return FilterChip(
                   label: Text(condition),
+                  labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color:
+                        isSelected
+                            ? theme.colorScheme.onPrimary
+                            : theme.colorScheme.onSurface,
+                  ),
                   selected: isSelected,
                   selectedColor: theme.colorScheme.primary,
                   checkmarkColor: theme.colorScheme.onPrimary,

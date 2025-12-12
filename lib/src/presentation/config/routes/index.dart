@@ -14,9 +14,12 @@ import 'package:pet_adoption_app/src/presentation/screens/onboarding/index.dart'
 import 'package:pet_adoption_app/src/presentation/screens/pets/details/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/pets/registration/index.dart';
 import 'package:pet_adoption_app/src/presentation/screens/root_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/search/search_filters_screen.dart';
+import 'package:pet_adoption_app/src/presentation/screens/search/search_results_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/edit_profile_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/profile/edit_user_settings_screen.dart';
 import 'package:pet_adoption_app/src/presentation/screens/user/public/index.dart';
+import 'package:pet_adoption_app/src/presentation/screens/location/location_picker_screen.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -44,6 +47,24 @@ class AppRouter {
         builder: (context, state) => const EmailVerificationScreen(),
       ),
       GoRoute(path: '/home', builder: (context, state) => const RootScreen()),
+      GoRoute(
+        path: '/search-filters',
+        builder: (context, state) => const SearchFiltersScreen(),
+      ),
+      GoRoute(
+        path: '/search-results',
+        builder: (context, state) => const SearchResultsScreen(),
+      ),
+      GoRoute(
+        path: '/location-picker',
+        builder: (context, state) {
+          final showRadiusControl =
+              state.extra != null &&
+              (state.extra as Map)['showRadiusControl'] == true;
+
+          return LocationPickerScreen(showRadiusControl: showRadiusControl);
+        },
+      ),
       GoRoute(
         path: '/pet-registration',
         builder: (context, state) => const PetRegistrationScreen(),

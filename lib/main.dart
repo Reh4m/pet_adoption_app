@@ -12,6 +12,7 @@ import 'package:pet_adoption_app/src/presentation/providers/media_provider.dart'
 import 'package:pet_adoption_app/src/presentation/providers/onboarding_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_registration_provider.dart';
+import 'package:pet_adoption_app/src/presentation/providers/search_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/theme_provider.dart';
 import 'package:pet_adoption_app/src/presentation/providers/user_provider.dart';
 import 'package:provider/provider.dart';
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AdoptionRequestProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => MediaProvider()),
+        ChangeNotifierProvider(create: (_) => SearchProvider()),
       ],
       child: const MyApp(),
     ),

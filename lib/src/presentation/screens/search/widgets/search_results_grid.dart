@@ -1,23 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/core/constants/theme_constants.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_entity.dart';
 
-class UserPetCard extends StatelessWidget {
-  final PetEntity pet;
-  final VoidCallback onTap;
+class SearchResultsGrid extends StatelessWidget {
+  final List<PetEntity> pets;
 
-  const UserPetCard({super.key, required this.pet, required this.onTap});
+  const SearchResultsGrid({super.key, required this.pets});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: pets.length,
+      itemBuilder: (context, index) {
+        return _PetSearchCard(pet: pets[index]);
+      },
+    );
+  }
+}
+
+class _PetSearchCard extends StatelessWidget {
+  final PetEntity pet;
+
+  const _PetSearchCard({required this.pet});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: onTap,
+      onTap: () => context.push('/pets/${pet.id}', extra: {'pet': pet}),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -32,7 +55,7 @@ class UserPetCard extends StatelessWidget {
                   children: [
                     _buildPetInfo(theme),
                     const Spacer(),
-                    _buildStatusBadge(theme),
+                    _buildPetDetails(theme),
                   ],
                 ),
               ),
@@ -104,50 +127,59 @@ class UserPetCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusBadge(ThemeData theme) {
-    Color statusColor;
-    String statusText;
-    IconData statusIcon;
-
-    switch (pet.status) {
-      case PetStatus.available:
-        statusColor = Colors.green;
-        statusText = 'Disponible';
-        statusIcon = Icons.favorite_outline;
-        break;
-      case PetStatus.pending:
-        statusColor = Colors.orange;
-        statusText = 'Pendiente';
-        statusIcon = Icons.hourglass_empty;
-        break;
-      case PetStatus.adopted:
-        statusColor = Colors.blue;
-        statusText = 'Adoptado';
-        statusIcon = Icons.home;
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: statusColor.withAlpha(20),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(statusIcon, size: 12, color: statusColor),
-          const SizedBox(width: 4),
-          Text(
-            statusText,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: statusColor,
-              fontWeight: FontWeight.w600,
-              fontSize: 10,
-            ),
+  Widget _buildPetDetails(ThemeData theme) {
+    return Wrap(
+      spacing: 5,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withAlpha(20),
+            borderRadius: BorderRadius.circular(8),
           ),
-        ],
-      ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 12,
+                color: theme.colorScheme.primary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                pet.location.city,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withAlpha(20),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.pets, size: 12, color: theme.colorScheme.primary),
+              const SizedBox(width: 4),
+              Text(
+                pet.breed,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

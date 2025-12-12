@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pet_adoption_app/src/domain/entities/pet/pet_location_entity.dart';
 import 'package:pet_adoption_app/src/presentation/providers/pet_registration_provider.dart';
+import 'package:pet_adoption_app/src/presentation/widgets/common/custom_button.dart';
 import 'package:pet_adoption_app/src/presentation/widgets/common/custom_text_field.dart';
+import 'package:pet_adoption_app/src/presentation/screens/location/location_picker_screen.dart';
 import 'package:provider/provider.dart';
 
 class StepLocation extends StatefulWidget {
@@ -18,6 +21,8 @@ class _StepLocationState extends State<StepLocation> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
 
+  PetLocationEntity? _selectedLocation;
+
   @override
   void initState() {
     super.initState();
@@ -29,6 +34,7 @@ class _StepLocationState extends State<StepLocation> {
     _descriptionController.text = provider.petDescription ?? '';
 
     if (provider.petLocation != null) {
+      _selectedLocation = provider.petLocation;
       _addressController.text = provider.petLocation!.address;
       _cityController.text = provider.petLocation!.city;
       _stateController.text = provider.petLocation!.state;
@@ -47,14 +53,33 @@ class _StepLocationState extends State<StepLocation> {
     super.dispose();
   }
 
+  Future<void> _showLocationPicker() async {
+    final result = await context.push<LocationPickerResult>(
+      '/location-picker',
+      extra: {'showRadiusControl': false},
+    );
+
+    if (!mounted || result == null) return;
+
+    setState(() {
+      _selectedLocation = result.location;
+
+      _addressController.text = result.location.address;
+      _cityController.text = result.location.city;
+      _stateController.text = result.location.state;
+    });
+
+    _updateData();
+  }
+
   void _updateData() {
     if (_formKey.currentState?.validate() ?? false) {
       final provider = context.read<PetRegistrationProvider>();
 
-      // Crear ubicación (por ahora con coordenadas fijas de Celaya)
+      // Crear ubicación final con coordenadas seleccionadas o por defecto
       final location = PetLocationEntity(
-        latitude: 20.5264,
-        longitude: -100.8147,
+        latitude: _selectedLocation?.latitude ?? 20.5264, // Celaya por defecto
+        longitude: _selectedLocation?.longitude ?? -100.8147,
         address: _addressController.text.trim(),
         city: _cityController.text.trim(),
         state: _stateController.text.trim(),
@@ -130,6 +155,7 @@ class _StepLocationState extends State<StepLocation> {
               label: 'Dirección o colonia *',
               hint: 'ej. Centro, Colonia Las Flores, etc.',
               controller: _addressController,
+              enabled: false,
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'La dirección es obligatoria';
@@ -146,6 +172,7 @@ class _StepLocationState extends State<StepLocation> {
                     label: 'Ciudad *',
                     hint: 'Ciudad',
                     controller: _cityController,
+                    enabled: false,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'La ciudad es obligatoria';
@@ -161,6 +188,7 @@ class _StepLocationState extends State<StepLocation> {
                     label: 'Estado *',
                     hint: 'Estado',
                     controller: _stateController,
+                    enabled: false,
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
                         return 'El estado es obligatorio';
@@ -188,30 +216,45 @@ class _StepLocationState extends State<StepLocation> {
         color: theme.colorScheme.primary.withAlpha(20),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Icon(Icons.security, color: theme.colorScheme.primary, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tu privacidad es importante',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary,
-                  ),
+          Row(
+            children: [
+              Icon(Icons.security, color: theme.colorScheme.primary, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tu privacidad es importante',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Solo se mostrará información general de la zona, no tu dirección exacta.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  'Solo se mostrará información general de la zona, no tu dirección exacta.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          CustomButton(
+            text:
+                _selectedLocation != null
+                    ? 'Cambiar ubicación en mapa'
+                    : 'Seleccionar en mapa',
+            icon: const Icon(Icons.map, size: 20),
+            variant: ButtonVariant.outline,
+            onPressed: _showLocationPicker,
+            width: double.infinity,
           ),
         ],
       ),
