@@ -300,7 +300,9 @@ class _CurrentUserProfileScreenState extends State<CurrentUserProfileScreen> {
                   .toList();
 
           final adoptedPets =
-              userPets.where((pet) => pet.adoptedBy == currentUser.id).toList();
+              petProvider.allPets
+                  .where((pet) => pet.adoptedBy == currentUser.id)
+                  .toList();
 
           return LoadingOverlay(
             isLoading: userProvider.operationState == UserState.loading,
